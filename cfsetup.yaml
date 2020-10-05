@@ -1,0 +1,103 @@
+default-flavor: buster
+
+buster:
+  # cfsetup build [--ccache] -f buster
+  build:
+    build_dir: /cfsetup_build/clickhouse
+    builddeps:
+      # Release build requirements
+      - cf-gcc=9.3.0-1
+      - ccache
+      # Common
+      - debhelper
+      - devscripts
+      - fakeroot
+      - git-core
+      - gperf
+      - libreadline-dev
+      - libtool
+      - ninja-build
+      - pkg-config
+      - tzdata
+      - cmake
+    post-cache:
+      - sudo chown -R $(id -u):$(id -g) ..
+      # ccache permissions in TeamCity
+      - (sudo chown -R $(id -u):$(id -g) /.ccache ||:)
+      # Action
+      - ./cf-build/release.sh
+    artifacts:
+      - '../*.deb'
+
+  # cfsetup build -f buster -yt fasttest
+  fasttest:
+    build_dir: /cfsetup_build/clickhouse
+    builddeps:
+      # Unique to fasttest
+      - ccache
+      - lsb-release
+      - moreutils # for ts command
+      - procps
+      - psmisc
+      - wget
+      # clickhouse-test requirements
+      - python
+      - python-lxml
+      - python-requests
+      - python-termcolor
+      - python3
+      - python3-requests
+      - qemu-user-static
+      # Common
+      - debhelper
+      - devscripts
+      - fakeroot
+      - git-core
+      - gperf
+      - libreadline-dev
+      - libtool
+      - ninja-build
+      - pkg-config
+      - tzdata
+      - cmake
+    pre-cache:
+      - sudo chown -R $(id -u):$(id -g) ..
+      # LLVM
+      - wget -nv -O /tmp/llvm-snapshot.gpg.key https://apt.llvm.org/llvm-snapshot.gpg.key
+      - echo "bda960a8da687a275a2078d43c111d66b1c6a893a3275271beedf266c1ff4a0cdecb429c7a5cccf9f486ea7aa43fd27f /tmp/llvm-snapshot.gpg.key" | sha384sum -c
+      - apt-key add --armor /tmp/llvm-snapshot.gpg.key
+      - echo "deb [trusted=yes] https://apt.llvm.org/buster/ llvm-toolchain-buster-10 main" >> /etc/apt/sources.list
+      - apt-get update
+      - apt-get install --yes --no-install-recommends clang-10 lld-10 llvm-10
+    post-cache:
+      # Functional tests by default expect Moscow timezone
+      - export TZ=Europe/Moscow
+      - sudo ln -snf /usr/share/zoneinfo/$TZ /etc/localtime
+      - echo $TZ | sudo tee /etc/timezone
+      # Prep
+      - sudo mkdir -p /var/lib/clickhouse /var/log/clickhouse-server
+      - sudo chown -R $(id -u):$(id -g) /var/lib/clickhouse /var/log/clickhouse-server
+      # ccache permissions in TeamCity
+      - (sudo chown -R $(id -u):$(id -g) /.ccache ||:)
+      # Action
+      - ./cf-build/fasttest.sh
+    artifacts:
+      - '/cfsetup_build/clickhouse/build_fasttest/out/*'
+
+  # cfsetup build -f buster -yt dib-apt
+  dib-apt:
+    build_dir: /cfsetup_build/clickhouse
+    post-cache:
+      - ./cf-build/docker/gen-dib.sh apt
+
+  # cfsetup build -f buster -yt dib-local
+  dib-local:
+    build_dir: /cfsetup_build/clickhouse
+    post-cache:
+      - ./cf-build/docker/gen-dib.sh local
+
+stretch:
+  build:
+    post-cache:
+      # do nothing
+      - exit 0

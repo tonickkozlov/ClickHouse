@@ -1,0 +1,13 @@
+# clickhouse:latest is the image built by previous dib step.
+FROM clickhouse:latest
+
+ARG version
+
+RUN apt-get update && \
+    apt-get -y install \
+        clickhouse-common-static-dbg=${version} \
+        # And minimum set of debugging tools.
+        gdb procps && \
+    /build/cleanup.sh
+
+ENTRYPOINT ["/usr/bin/clickhouse-server", "--config=/etc/clickhouse-server/config.xml"]

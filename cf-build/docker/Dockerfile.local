@@ -1,0 +1,32 @@
+FROM scratch as artifacts_as_single_layer
+
+# This results in gigantic image size, could be fixed in the future with https://github.com/moby/moby/issues/12169.
+# Not including debugging symbols to save a bit on image size.
+COPY clickhouse-common-static_*.deb /packages/clickhouse-common-static_*.deb
+COPY clickhouse-server_*.deb /packages/clickhouse-server_*.deb
+COPY clickhouse-client_*.deb /packages/clickhouse-client_*.deb
+
+FROM docker-registry.cfdata.org/stash/plat/dockerfiles/debian-buster/master:2020.3.0
+
+COPY --from=artifacts_as_single_layer /packages /packages
+
+ARG version
+
+# * jq is needed for some dictionaries
+# * odbc is needed for some postgresql dictionaries like cf_zone
+RUN apt-get update && \
+    apt-get -y install \
+        /packages/clickhouse*.deb \
+        jq \
+        python-requests \
+        unixodbc \
+        odbcinst \
+        odbc-postgresql \
+        unzip && \
+    # workaround to bind odbc config by using directory https://jira.cfops.it/browse/COREPLAT-1159
+    mkdir -p /etc/odbc/ && \
+    mv /etc/odbc.ini /etc/odbc/odbc.ini && \
+    ln -fs /etc/odbc/odbc.ini /etc/odbc.ini && \
+    /build/cleanup.sh
+
+ENTRYPOINT ["/usr/bin/clickhouse-server", "--config=/etc/clickhouse-server/config.xml"]

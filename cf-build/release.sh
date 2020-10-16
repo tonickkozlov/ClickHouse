@@ -38,6 +38,10 @@ sed -i \
 
 export CMAKE_FLAGS=""
 
+# Disable features we don't use in production.
+# Reason: Faster builds and workaround for TeamCity memory limits.
+export CMAKE_FLAGS="${CMAKE_FLAGS} -DENABLE_EMBEDDED_COMPILER=OFF -DENABLE_AMQPCPP=OFF -DENABLE_CASSANDRA=OFF -DENABLE_MSGPACK=OFF -DENABLE_AVRO=OFF -DENABLE_PROTOBUF=OFF -DENABLE_GRPC=OFF -DENABLE_ARROW=0 -DENABLE_ORC=0 -DENABLE_PARQUET=0 -DENABLE_HDFS=0 -DENABLE_MYSQL=0"
+
 # Tune ccache config if directory is mounted.
 if [ -d "/.ccache" ]; then
   export CCACHE_BASEDIR=/cfsetup_build/clickhouse

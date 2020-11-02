@@ -232,6 +232,9 @@ TESTS_TO_SKIP=(
     01460_DistributedFilesToInsert
 )
 
+# to run only tests with the name pattern:
+#
+# time clickhouse-test -j 8 --no-long --testname --shard --zookeeper --skip "${TESTS_TO_SKIP[@]}" -- <pattern>
 time clickhouse-test -j 8 --no-long --testname --shard --zookeeper --skip "${TESTS_TO_SKIP[@]}" 2>&1 | ts '%Y-%m-%d %H:%M:%S' | tee "$FASTTEST_OUTPUT/test_log.txt"
 
 # substr is to remove semicolon after test name

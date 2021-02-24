@@ -29,6 +29,125 @@ buster:
     artifacts:
       - '../*.deb'
 
+  # cfsetup build [--ccache] -f buster -yt build_asan
+  build_asan:
+    build_dir: /cfsetup_build/clickhouse
+    builddeps:
+      - wget
+      - ccache
+      # Common
+      - debhelper
+      - devscripts
+      - fakeroot
+      - git-core
+      - gperf
+      - libreadline-dev
+      - libtool
+      - ninja-build
+      - pkg-config
+      - tzdata
+      - cmake
+    pre-cache:
+      - sudo chown -R $(id -u):$(id -g) ..
+      # LLVM
+      - wget -nv -O /tmp/llvm-snapshot.gpg.key https://apt.llvm.org/llvm-snapshot.gpg.key
+      - echo "bda960a8da687a275a2078d43c111d66b1c6a893a3275271beedf266c1ff4a0cdecb429c7a5cccf9f486ea7aa43fd27f /tmp/llvm-snapshot.gpg.key" | sha384sum -c
+      - apt-key add --armor /tmp/llvm-snapshot.gpg.key
+      - echo "deb [trusted=yes] https://apt.llvm.org/buster/ llvm-toolchain-buster-10 main" >> /etc/apt/sources.list
+      - apt-get update
+      - apt-get install --yes --no-install-recommends clang-10 lld-10 llvm-10
+    post-cache:
+      - sudo chown -R $(id -u):$(id -g) ..
+      # ccache permissions in TeamCity
+      - (sudo chown -R $(id -u):$(id -g) /.ccache ||:)
+      # Configure this build
+      - export ENABLE_TESTS=1  # avoid stripping
+      - export SANITIZER=address
+      - export DEB_CC=clang-10
+      - export DEB_CXX=clang++-10
+      # Action
+      - ./cf-build/release.sh
+    artifacts:
+      - '../*.deb'
+
+  # cfsetup build [--ccache] -f buster -yt build_tsan
+  build_tsan:
+    build_dir: /cfsetup_build/clickhouse
+    builddeps:
+      - wget
+      - ccache
+      # Common
+      - debhelper
+      - devscripts
+      - fakeroot
+      - git-core
+      - gperf
+      - libreadline-dev
+      - libtool
+      - ninja-build
+      - pkg-config
+      - tzdata
+      - cmake
+    pre-cache:
+      - sudo chown -R $(id -u):$(id -g) ..
+      # LLVM
+      - wget -nv -O /tmp/llvm-snapshot.gpg.key https://apt.llvm.org/llvm-snapshot.gpg.key
+      - echo "bda960a8da687a275a2078d43c111d66b1c6a893a3275271beedf266c1ff4a0cdecb429c7a5cccf9f486ea7aa43fd27f /tmp/llvm-snapshot.gpg.key" | sha384sum -c
+      - apt-key add --armor /tmp/llvm-snapshot.gpg.key
+      - echo "deb [trusted=yes] https://apt.llvm.org/buster/ llvm-toolchain-buster-10 main" >> /etc/apt/sources.list
+      - apt-get update
+      - apt-get install --yes --no-install-recommends clang-10 lld-10 llvm-10
+    post-cache:
+      - sudo chown -R $(id -u):$(id -g) ..
+      # ccache permissions in TeamCity
+      - (sudo chown -R $(id -u):$(id -g) /.ccache ||:)
+      # Configure this build
+      - export ENABLE_TESTS=1 # avoid stripping
+      - export SANITIZER=thread
+      - export DEB_CC=clang-10
+      - export DEB_CXX=clang++-10
+      # Action
+      - ./cf-build/release.sh
+    artifacts:
+      - '../*.deb'
+
+  # cfsetup build -f buster -yt tests_stateless
+  tests_stateless:
+    build_dir: /cfsetup_build/clickhouse
+    nosubmodule: true
+    cap_add:
+      - SYS_PTRACE # For LeakSanitizer (part of asan)
+    builddeps:
+      # clickhouse-test requirements
+      - brotli
+      - expect
+      - lsof
+      - moreutils # for ts command
+      - netcat-openbsd
+      - procps
+      - python
+      - python-lxml
+      - python-requests
+      - python-termcolor
+      - python3
+      - python3-requests
+      - qemu-user-static
+      - telnet
+      - tree
+      - zookeeper
+      - zookeeperd
+    post-cache:
+      # Functional tests by default expect Moscow timezone
+      - export TZ=Europe/Moscow
+      - sudo ln -snf /usr/share/zoneinfo/$TZ /etc/localtime
+      - echo $TZ | sudo tee /etc/timezone
+      # Action
+      - sudo ./cf-build/tests/stateless.sh
+    artifacts:
+      - '/cfsetup_build/clickhouse/test_output'
+      - '/var/log/clickhouse-server'
+      - '/var/lib/clickhouse'
+
   # cfsetup build -f buster -yt fasttest
   fasttest:
     build_dir: /cfsetup_build/clickhouse

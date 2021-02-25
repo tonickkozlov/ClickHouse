@@ -63,5 +63,19 @@ if cat /usr/bin/clickhouse-test | grep -q -- "--use-skip-list"; then
     SKIP_LIST_OPT="--use-skip-list"
 fi
 
+mkdir -p artifacts
 mkdir -p test_output
+
+collect_logs() {
+  echo "Collecting logs"
+  cp -rf test_output/ artifacts/
+
+  mkdir -p artifacts/var/log/clickhouse-server
+  cp -rf /var/log/clickhouse-server artifacts/var/log/
+
+  mkdir -p artifacts/var/lib/clickhouse
+  cp -rf  /var/lib/clickhouse artifacts/var/lib/
+}
+trap collect_logs ERR
+
 clickhouse-test --testname --shard --zookeeper "$SKIP_LIST_OPT" $ADDITIONAL_OPTIONS $SKIP_TESTS_OPTION 2>&1 | ts '%Y-%m-%d %H:%M:%S' | tee test_output/test_result.txt

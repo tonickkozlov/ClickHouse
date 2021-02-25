@@ -143,10 +143,6 @@ buster:
       - echo $TZ | sudo tee /etc/timezone
       # Action
       - sudo ./cf-build/tests/stateless.sh
-    artifacts:
-      - '/cfsetup_build/clickhouse/test_output'
-      - '/var/log/clickhouse-server'
-      - '/var/lib/clickhouse'
 
   # cfsetup build -f buster -yt fasttest
   fasttest:

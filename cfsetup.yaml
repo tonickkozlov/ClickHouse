@@ -20,6 +20,7 @@ buster:
       - pkg-config
       - tzdata
       - cmake
+      - s4cmd
     post-cache:
       - sudo chown -R $(id -u):$(id -g) ..
       # ccache permissions in TeamCity
@@ -47,6 +48,7 @@ buster:
       - pkg-config
       - tzdata
       - cmake
+      - s4cmd
     pre-cache:
       - sudo chown -R $(id -u):$(id -g) ..
       # LLVM
@@ -61,6 +63,7 @@ buster:
       # ccache permissions in TeamCity
       - (sudo chown -R $(id -u):$(id -g) /.ccache ||:)
       # Configure this build
+      - export S3_CCACHE_KEY_SUFFIX=asan
       - export ENABLE_TESTS=1  # avoid stripping
       - export SANITIZER=address
       - export DEB_CC=clang-10
@@ -88,6 +91,7 @@ buster:
       - pkg-config
       - tzdata
       - cmake
+      - s4cmd
     pre-cache:
       - sudo chown -R $(id -u):$(id -g) ..
       # LLVM
@@ -102,6 +106,7 @@ buster:
       # ccache permissions in TeamCity
       - (sudo chown -R $(id -u):$(id -g) /.ccache ||:)
       # Configure this build
+      - export S3_CCACHE_KEY_SUFFIX=tsan
       - export ENABLE_TESTS=1 # avoid stripping
       - export SANITIZER=thread
       - export DEB_CC=clang-10
@@ -140,7 +145,7 @@ buster:
       - sudo ln -snf /usr/share/zoneinfo/$TZ /etc/localtime
       - echo $TZ | sudo tee /etc/timezone
       # Action
-      - sudo ./cf-build/tests/stateless.sh
+      - sudo -E ./cf-build/tests/stateless.sh
 
   # cfsetup build -f buster -yt fasttest
   fasttest:
@@ -173,6 +178,7 @@ buster:
       - pkg-config
       - tzdata
       - cmake
+      - s4cmd
     pre-cache:
       - sudo chown -R $(id -u):$(id -g) ..
       # LLVM

@@ -9,6 +9,11 @@ dpkg -i artifacts-in/clickhouse-server_*.deb
 dpkg -i artifacts-in/clickhouse-client_*.deb
 dpkg -i artifacts-in/clickhouse-test_*.deb
 
+if [[ -n ${CI+x} ]]; then
+  echo "Cleaning up input artifacts to avoid TeamCity republishing them"
+  rm -rf artifacts-in
+fi
+
 mkdir -p /etc/clickhouse-server/dict_examples
 ln -s /usr/share/clickhouse-test/config/ints_dictionary.xml /etc/clickhouse-server/dict_examples/
 ln -s /usr/share/clickhouse-test/config/strings_dictionary.xml /etc/clickhouse-server/dict_examples/

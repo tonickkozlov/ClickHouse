@@ -23,6 +23,8 @@ FASTTEST_BUILD="$FASTTEST_WORKSPACE/build"
 FASTTEST_DATA="$FASTTEST_WORKSPACE/db"
 FASTTEST_OUTPUT="$FASTTEST_WORKSPACE/out"
 
+CCACHE_ACCESS_KEY=${CCACHE_ACCESS_KEY:-}
+
 # Cleanup previous run
 rm -rf "$FASTTEST_DATA" "$FASTTEST_OUTPUT"
 mkdir -p "$FASTTEST_BUILD" "$FASTTEST_DATA" "$FASTTEST_OUTPUT"
@@ -103,18 +105,26 @@ function run_cmake
 {
 CMAKE_LIBS_CONFIG=("-DENABLE_LIBRARIES=0" "-DENABLE_TESTS=0" "-DENABLE_UTILS=0" "-DENABLE_EMBEDDED_COMPILER=0" "-DENABLE_THINLTO=0" "-DUSE_UNWIND=1")
 
-# cfsetup --ccache mounts a global ccache there
-#   use it if exists
-if [ -d "/.ccache" ]; then
-  export CCACHE_DIR="/.ccache"
-else
-  export CCACHE_DIR="$FASTTEST_WORKSPACE/ccache"
-fi
-
 export CCACHE_BASEDIR="$FASTTEST_SOURCE"
 export CCACHE_NOHASHDIR=true
 export CCACHE_COMPILERCHECK=content
 export CCACHE_MAXSIZE=25G
+
+# cfsetup --ccache mounts a global ccache there
+#   use it if exists
+if [ -d "/.ccache" ]; then
+  export CCACHE_DIR="/.ccache"
+elif [[ -n "$CCACHE_ACCESS_KEY" ]]; then
+  mkdir -p "$HOME/.ccache"
+  export CCACHE_DIR="$HOME/.ccache"
+  export CCACHE_MAXSIZE=10G
+
+  export S3_CCACHE_KEY_SUFFIX="fasttest"
+  mkdir -p $HOME/.aws
+  python3 $FASTTEST_SOURCE/cf-build/ccache_utils.py download
+else
+  export CCACHE_DIR="$FASTTEST_WORKSPACE/ccache"
+fi
 
 ccache --show-stats ||:
 ccache --zero-stats ||:
@@ -125,10 +135,21 @@ cmake "$FASTTEST_SOURCE" -DCMAKE_CXX_COMPILER=clang++-10 -DCMAKE_C_COMPILER=clan
 )
 }
 
+function upload_ccache
+{
+  if [[ -n "$CCACHE_ACCESS_KEY" ]]; then
+    python3 $FASTTEST_SOURCE/cf-build/ccache_utils.py upload
+  fi
+}
+
 function build
 {
 (
 cd "$FASTTEST_BUILD"
+
+# Always try to upload ccache, even on failures
+trap upload_ccache ERR EXIT
+
 time ninja clickhouse-bundle | ts '%Y-%m-%d %H:%M:%S' | tee "$FASTTEST_OUTPUT/build_log.txt"
 ccache --show-stats ||:
 )

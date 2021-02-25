@@ -70,12 +70,10 @@ collect_logs() {
   echo "Collecting logs"
   cp -rf test_output/ artifacts/
 
-  mkdir -p artifacts/var/log/clickhouse-server
-  cp -rf /var/log/clickhouse-server artifacts/var/log/
-
-  mkdir -p artifacts/var/lib/clickhouse
-  cp -rf  /var/lib/clickhouse artifacts/var/lib/
+  tar cvzf artifacts/logs.tar.gz /var/log/clickhouse-server
+  tar cvzf artifacts/data.tar.gz /var/lib/clickhouse
+  tar cvzf artifacts/config.tar.gz  /etc/clickhouse-server
 }
-trap collect_logs ERR
+trap collect_logs ERR EXIT
 
 clickhouse-test --testname --shard --zookeeper "$SKIP_LIST_OPT" $ADDITIONAL_OPTIONS $SKIP_TESTS_OPTION 2>&1 | ts '%Y-%m-%d %H:%M:%S' | tee test_output/test_result.txt

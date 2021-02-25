@@ -48,6 +48,13 @@ fi
 
 ln -sf /usr/share/clickhouse-test/config/client_config.xml /etc/clickhouse-client/config.xml
 
+# teamcity agents resolve a host which they can't connect to
+cat > /etc/clickhouse-server/config.d/local_interserver.xml << EOF
+<yandex>
+  <interserver_http_host>localhost</interserver_http_host>
+</yandex>
+EOF
+
 echo "TSAN_OPTIONS='verbosity=1000 halt_on_error=1 history_size=7'" >> /etc/environment
 echo "TSAN_SYMBOLIZER_PATH=/usr/lib/llvm-10/bin/llvm-symbolizer" >> /etc/environment
 echo "UBSAN_OPTIONS='print_stacktrace=1'" >> /etc/environment
@@ -55,8 +62,6 @@ echo "ASAN_SYMBOLIZER_PATH=/usr/lib/llvm-10/bin/llvm-symbolizer" >> /etc/environ
 echo "UBSAN_SYMBOLIZER_PATH=/usr/lib/llvm-10/bin/llvm-symbolizer" >> /etc/environment
 echo "LLVM_SYMBOLIZER_PATH=/usr/lib/llvm-10/bin/llvm-symbolizer" >> /etc/environment
 
-service zookeeper start
-sleep 5
 service clickhouse-server start && sleep 5
 
 if cat /usr/bin/clickhouse-test | grep -q -- "--use-skip-list"; then
@@ -67,13 +72,15 @@ mkdir -p artifacts
 mkdir -p test_output
 
 collect_logs() {
+  service clickhouse-server stop ||:
+
   echo "Collecting logs"
   cp -rf test_output/ artifacts/
 
-  tar cvzf artifacts/logs.tar.gz /var/log/clickhouse-server
-  tar cvzf artifacts/data.tar.gz /var/lib/clickhouse
-  tar cvzf artifacts/config.tar.gz  /etc/clickhouse-server
+  tar czf artifacts/logs.tar.gz /var/log/clickhouse-server
+  tar czf artifacts/data.tar.gz /var/lib/clickhouse
+  tar czf artifacts/config.tar.gz  /etc/clickhouse-server
 }
 trap collect_logs ERR EXIT
 
-clickhouse-test --testname --shard --zookeeper "$SKIP_LIST_OPT" $ADDITIONAL_OPTIONS $SKIP_TESTS_OPTION 2>&1 | ts '%Y-%m-%d %H:%M:%S' | tee test_output/test_result.txt
+clickhouse-test --testname --shard --zookeeper --print-time "$SKIP_LIST_OPT" $ADDITIONAL_OPTIONS $SKIP_TESTS_OPTION 2>&1 | ts '%Y-%m-%d %H:%M:%S' | tee test_output/test_result.txt

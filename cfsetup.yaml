@@ -134,8 +134,6 @@ buster:
       - qemu-user-static
       - telnet
       - tree
-      - zookeeper
-      - zookeeperd
     post-cache:
       # Functional tests by default expect Moscow timezone
       - export TZ=Europe/Moscow

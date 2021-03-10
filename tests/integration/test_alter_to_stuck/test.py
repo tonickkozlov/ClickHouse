@@ -75,18 +75,19 @@ def get_random_string(length):
 
 
 def alter_table(node, delay=1, thread_number=1):
-    # node.query("SYSTEM START MERGES")
     i = 0
     while True:
+        last_ex = ""
         try:
             print("THREAD({}) NODE ({}): ALTER data, starting attempt {}".format(thread_number, node.name, i))
             node.query("ALTER TABLE t MODIFY COLUMN IF EXISTS value UInt64")
             print("THREAD({}) NODE ({}): ALTER data, finished attempt {}".format(thread_number, node.name, i))
         except Exception as ex:
-            caught_exception = str(ex)
+            last_ex = str(ex)
             print("THREAD({}) NODE ({}): ALTER data, errored attempt {}".format(thread_number, node.name, i))
 
-            assert caught_exception.find("Code: 517") != -1, "Expected to get CANNOT_ASSIGN_ALTER=517 error"
+        if last_ex and not (last_ex.find("Code: 517") != -1 or last_ex.find("Code: 210") != -1):
+            assert False, "Expected to get 517 or 210 error code"
 
         i += 1
         time.sleep(delay)
@@ -94,10 +95,6 @@ def alter_table(node, delay=1, thread_number=1):
 
 def generate_data(volume=1):
     values = list()
-    # if int(n.query("select count() from system.mutations where not is_done").strip()) > 0:
-    #     # skip insert
-    #     print("THREAD({}) NODE ({}): TRY TO INSERT, skipping".format(thread_number, n.name))
-    #     return
     for i in range(volume):
         values.append("({},{},'{}')".format(i, random.randint(0, UINT32), ''))
     return ",".join(values)
@@ -108,32 +105,61 @@ def generate_insert_query(volume=1):
 
 
 def streamed_insert(node, volume=1, rate=1, thread_number=1, data=None):
+    print("THREAD({}) NODE ({}): STREAMED INSERT data volume {}".format(thread_number, node.name, volume))
+    # message = "THREAD({}) NODE ({}): STREAMED INSERT".format(thread_number, node.name)
+    message = ""
     if data:
-        db = DataBlock(data, rate, "THREAD({}) NODE ({}): STREAMED INSERT".format(thread_number, node.name))
+        db = DataBlock(data, rate, message)
     else:
-        db = DataBlock(generate_data(volume), rate, "THREAD({}) NODE ({}): STREAMED INSERT".format(thread_number, node.name))
-    node.http_query("INSERT INTO t VALUES", data=db, params={'query_id': "insert_query_id_{}".format(thread_number)})
+        db = DataBlock(generate_data(volume), rate, message)
+    last_ex = ""
+    try:
+        node.http_query("INSERT INTO t VALUES", data=db, params={'query_id': "insert_query_id_{}".format(thread_number)})
+    except Exception as ex:
+        last_ex = str(ex)
+
+    if last_ex:
+        assert last_ex.find("Code: 210") != -1, "Expected 210 error code"
 
 
 def insert(node, volume=1, delay=1, thread_number=1):
     print("THREAD({}) NODE ({}): INSERT data volume {}".format(thread_number, node.name, volume))
     data = generate_insert_query(volume)
+
+    def query():
+        last_ex = ""
+        try:
+            node.query(data)
+        except Exception as ex:
+            last_ex = str(ex)
+
+        if last_ex:
+            assert last_ex.find("Code: 210") != -1, "Expected to 210 error code"
+
     if delay:
         while True:
-            try:
-                result = node.query(data)
-                print("THREAD({}) NODE ({}): INSERT data, result:\n {}".format(thread_number, node.name, result))
-            except Exception as ex:
-                print(str(ex))
+            query()
+            # last_ex = ""
+            # try:
+            #     node.query(data)
+            # except Exception as ex:
+            #     last_ex = str(ex)
+            #
+            # # Code: 210
+            # # print(str(ex))
             time.sleep(delay)
     else:
-        node.query(data)
+        query()
+        # node.query(data)
 
 
-def select_from_table(node, delay=1):
+def select_from_table(node, delay=1, thread_number=1):
     while True:
-        print("NODE ({}): SELECT data from".format(node.name))
-        print("NODE ({}): result {}".format(node.name, node.query("select count() from t").strip()))
+        if int(node.query("select count() from system.mutations where is_done").strip()) > 0:
+            print("THREAD({}) NODE ({}): Mutation is done".format(thread_number, node.name))
+            return
+        print("NODE ({}): parts count {}".format(node.name, node.query("select count() from system.parts").strip()))
+        print("NODE ({}): replication queue {}".format(node.name, node.query("select count() from system.replication_queue").strip()))
         time.sleep(delay)
 
 
@@ -181,24 +207,22 @@ def test_no_stall(started_cluster):
 
         print("starting background threads on both nodes")
 
+        foreground_threads = []
         threads = []
-        priority_threads = []
+        slow_insert_threads = []
         for node in nodes:
-            threads.append(threading.Thread(target=select_from_table, args=(node,)))
+            foreground_threads.append(threading.Thread(target=select_from_table, args=(node, 5, 1)))
             # send delayed insert with X b/s rate
-            priority_threads.append(threading.Thread(target=streamed_insert, args=(node, 1000000, 1000, 1, streamed_data)))
-            priority_threads.append(threading.Thread(target=streamed_insert, args=(node, 1000000, 2100, 2, streamed_data)))
-            priority_threads.append(threading.Thread(target=streamed_insert, args=(node, 1000000, 5100, 3, streamed_data)))
+            slow_insert_threads.append(threading.Thread(target=streamed_insert, daemon=True, args=(node, 1000000, 1000, 1, streamed_data)))
+            slow_insert_threads.append(threading.Thread(target=streamed_insert, daemon=True, args=(node, 1000000, 2100, 2, streamed_data)))
+            slow_insert_threads.append(threading.Thread(target=streamed_insert, daemon=True, args=(node, 1000000, 5100, 3, streamed_data)))
             # send concurrent inserts
-            threads.append(threading.Thread(target=insert, args=(node, 20, 1, 1)))
-            threads.append(threading.Thread(target=insert, args=(node, 20, 1.1, 2)))
-            # threads.append(threading.Thread(target=insert, args=(node, 20, 1.2, 3)))
-            # threads.append(threading.Thread(target=insert, args=(node, 20, 1.3, 4)))
-            # threads.append(threading.Thread(target=insert, args=(node, 20, 1.4, 5)))
+            threads.append(threading.Thread(target=insert, daemon=True, args=(node, 20, 1, 1)))
+            threads.append(threading.Thread(target=insert, daemon=True, args=(node, 20, 1.1, 2)))
             # send concurrent alters
-            threads.append(threading.Thread(target=alter_table, args=(node, 1, 1)))
-            threads.append(threading.Thread(target=alter_table, args=(node, 1.4, 2)))
-            threads.append(threading.Thread(target=alter_table, args=(node, 1.7, 3)))
+            threads.append(threading.Thread(target=alter_table, daemon=True, args=(node, 1, 1)))
+            threads.append(threading.Thread(target=alter_table, daemon=True, args=(node, 1.4, 2)))
+            threads.append(threading.Thread(target=alter_table, daemon=True, args=(node, 1.7, 3)))
 
         # start fetches to load the network
         print("starting merges and fetches")
@@ -213,7 +237,10 @@ def test_no_stall(started_cluster):
 
         time.sleep(1)
 
-        for t in priority_threads:
+        for t in foreground_threads:
+            t.start()
+
+        for t in slow_insert_threads:
             t.start()
 
         print("waiting for streamed inserters to start")
@@ -223,14 +250,22 @@ def test_no_stall(started_cluster):
             t.start()
 
         print("waiting for background threads")
-        time.sleep(30)
+        time.sleep(10)
         print("disabling network delay on all nodes")
         pm.heal_all()
 
-        for t in threads+priority_threads:
-            t.join()
+        for t in foreground_threads:
+            t.join(60)
+
+            assert not t.is_alive(), "waiting time for alter exceeded the expectations"
+
+        print("cancelling the background threads")
+
+        # since inserts are finished, we can stop inserts
+        for t in slow_insert_threads+threads:
+            t.join(1.0)
 
         for node in nodes:
-            desc = node.query("SELECT name, type FROM system.columns WHERE table = 't' FORMAT CSV").strip()
-            print("NODE ({}): columns of table t: {}".format(node.name, desc))
-            print()
+            value_type = node.query("SELECT type FROM system.columns WHERE table = 't' and name = 'value'").strip()
+            assert value_type == "UInt64", "got unexpected value type, alter was not applied on a node {} within the expected time".format(node.name)
+

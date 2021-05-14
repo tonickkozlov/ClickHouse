@@ -7,7 +7,9 @@ RUN apt-get update && \
     apt-get -y install \
         clickhouse-common-static-dbg=${version} \
         # And minimum set of debugging tools.
-        gdb procps && \
+        gdb procps libutils libstdc++6 libc6-dbg vim && \
     /build/cleanup.sh
+
+COPY configs/.gdbinit /root/.gdbinit
 
 ENTRYPOINT ["/usr/bin/clickhouse-server", "--config=/etc/clickhouse-server/config.xml"]

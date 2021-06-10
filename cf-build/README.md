@@ -3,9 +3,9 @@
 ```sh
 # example, didn't test this yet
 
-OLD_BRANCH=cf/v20.3
+OLD_BRANCH=cf/v20.8
 FILES="cfsetup.yaml cf-build"
 
 COMMITS=$(git log "origin/$OLD_BRANCH" --pretty=format:"%h" --reverse -- $FILES)
-git format-patch --stdout $COMMITS -- $FILES | git am -
+git format-patch --stdout $COMMITS -- $FILES | git am --committer-date-is-author-date -
 ```

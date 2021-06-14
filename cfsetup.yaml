@@ -135,15 +135,26 @@ buster:
       - moreutils # for ts command
       - netcat-openbsd
       - procps
-      - python
-      - python-lxml
-      - python-requests
-      - python-termcolor
       - python3
+      - python3-lxml
       - python3-requests
+      - python3-termcolor
+      - python3-pip
       - qemu-user-static
       - telnet
       - tree
+      - zstd
+      - wget
+    pre-cache:
+      # Additional test dependencies.
+      - pip3 install numpy scipy pandas
+      # LLVM; want symbolizers for crashes
+      - wget -nv -O /tmp/llvm-snapshot.gpg.key https://apt.llvm.org/llvm-snapshot.gpg.key
+      - echo "bda960a8da687a275a2078d43c111d66b1c6a893a3275271beedf266c1ff4a0cdecb429c7a5cccf9f486ea7aa43fd27f /tmp/llvm-snapshot.gpg.key" | sha384sum -c
+      - apt-key add --armor /tmp/llvm-snapshot.gpg.key
+      - echo "deb [trusted=yes] https://apt.llvm.org/buster/ llvm-toolchain-buster-11 main" >> /etc/apt/sources.list
+      - apt-get update
+      - apt-get install --yes --no-install-recommends llvm-11
     post-cache:
       # Functional tests by default expect Moscow timezone
       - export TZ=Europe/Moscow
@@ -164,12 +175,10 @@ buster:
       - psmisc
       - wget
       # clickhouse-test requirements
-      - python
-      - python-lxml
-      - python-requests
-      - python-termcolor
       - python3
+      - python3-lxml
       - python3-requests
+      - python3-termcolor
       - qemu-user-static
       # Common
       - debhelper

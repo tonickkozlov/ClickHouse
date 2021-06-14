@@ -182,10 +182,12 @@ function run_cmake
     )
 }
 
-
+upload_ccache_done=0
 function upload_ccache
 {
-  if [[ -n "$CCACHE_ACCESS_KEY" ]]; then
+  upload_ccache_done=1
+
+  if [[ -n "$CCACHE_ACCESS_KEY" && "$upload_ccache_done" -ne "1" ]]; then
     python3 $FASTTEST_SOURCE/cf-build/ccache_utils.py upload
   fi
 }
@@ -193,7 +195,7 @@ function upload_ccache
 function build
 {
     # Always try to upload ccache, even on failures
-    trap upload_ccache ERR EXIT
+    trap upload_ccache ERR EXIT RETURN
 
     (
         cd "$FASTTEST_BUILD"

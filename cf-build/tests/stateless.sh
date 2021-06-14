@@ -73,11 +73,26 @@ function run_tests()
     ADDITIONAL_OPTIONS+=('_parquet')
     ADDITIONAL_OPTIONS+=('_protobuf')
 
-    # teamcity agents resolve a host which they can't connect to
+    # Cloudflare CI fails localhost resolution
     ADDITIONAL_OPTIONS+=('00646_url_engine')
+    ADDITIONAL_OPTIONS+=('01854_HTTP_dict_decompression')
+    ADDITIONAL_OPTIONS+=('01720_dictionary_create_source_with_functions')
+    ADDITIONAL_OPTIONS+=('01501_cache_dictionary_all_fields')
+    ADDITIONAL_OPTIONS+=('01257_dictionary_mismatch_types')
+
+    # These need investigation.
+    ADDITIONAL_OPTIONS+=('01658_read_file_to_stringcolumn')
+    ADDITIONAL_OPTIONS+=('01737_clickhouse_server_wait_server_pool_long')
+    ADDITIONAL_OPTIONS+=('01507_clickhouse_server_start_with_embedded_config')
 
     # depends on Yandex internal infrastructure
     ADDITIONAL_OPTIONS+=('01801_s3_cluster')
+
+    # No ipv6 in Docker on the metal CI agents.
+    ADDITIONAL_OPTIONS+=('01293_show_clusters')
+
+    # Not interested.
+    ADDITIONAL_OPTIONS+=('01606_git_import')
     # End tests to skip.
 
     clickhouse-test --testname --shard --zookeeper --hung-check --print-time \

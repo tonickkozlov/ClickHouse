@@ -135,7 +135,9 @@ buster:
       - moreutils # for ts command
       - netcat-openbsd
       - procps
+      - expect
       - python3
+      - python3-pip
       - python3-lxml
       - python3-requests
       - python3-termcolor
@@ -144,7 +146,10 @@ buster:
       - telnet
       - tree
       - zstd
+      - xz-utils
       - wget
+      # For testing CH's psql interface which we can't disable.
+      - postgresql-client
     pre-cache:
       # Additional test dependencies.
       - pip3 install numpy scipy pandas
@@ -175,7 +180,9 @@ buster:
       - psmisc
       - wget
       # clickhouse-test requirements
+      - expect
       - python3
+      - python3-pip
       - python3-lxml
       - python3-requests
       - python3-termcolor
@@ -194,6 +201,8 @@ buster:
       - cmake
       - s4cmd
     pre-cache:
+      # Additional test dependencies.
+      - pip3 install numpy scipy pandas
       # LLVM
       - wget -nv -O /tmp/llvm-snapshot.gpg.key https://apt.llvm.org/llvm-snapshot.gpg.key
       - echo "bda960a8da687a275a2078d43c111d66b1c6a893a3275271beedf266c1ff4a0cdecb429c7a5cccf9f486ea7aa43fd27f /tmp/llvm-snapshot.gpg.key" | sha384sum -c

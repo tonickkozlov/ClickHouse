@@ -19,12 +19,12 @@ def git_branch():
 
 def ccache_read_keys():
     # Avoid reading ccache for production builds. Paranoid.
-    if git_branch().startswith('cf/v'):
+    if git_branch() == "cf/master" or git_branch().startswith('cf/v'):
         return []
 
     return [
         git_branch() + "+" + S3_CCACHE_KEY_SUFFIX,
-        "cf/v20.8+" + S3_CCACHE_KEY_SUFFIX
+        "cf/master+" + S3_CCACHE_KEY_SUFFIX
     ]
 
 

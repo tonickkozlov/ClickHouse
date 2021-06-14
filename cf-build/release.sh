@@ -96,11 +96,11 @@ if [ -d "$CCACHE_DIR" ]; then
 
   # cf-gcc doesn't work with ccache out of the box
   #   update these if you update the compiler
-  sudo ln -s "$(command -v ccache)" /usr/lib/ccache/gcc-9 ||:
-  sudo ln -s "$(command -v ccache)" /usr/lib/ccache/g++-9 ||:
+#  sudo ln -s "$(command -v ccache)" /usr/lib/ccache/clang-11 ||:
+#  sudo ln -s "$(command -v ccache)" /usr/lib/ccache/clang++-11 ||:
 else
   echo "ccache not enabled for this build"
   export CMAKE_FLAGS="${CMAKE_FLAGS} -DENABLE_CCACHE=OFF"
 fi
 
-./release --no-pbuilder
+./release

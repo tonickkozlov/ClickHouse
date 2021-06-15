@@ -1,11 +1,12 @@
-FROM docker-registry.cfdata.org/stash/plat/dockerfiles/debian-buster/master:2020.3.0
+ARG CLOUDFLARE_DOCKER_REGISTRY_HOST=registry.cfdata.org
+FROM ${CLOUDFLARE_DOCKER_REGISTRY_HOST}/stash/cf/debian-images/buster/main:2021.4.0
 
 ARG version
 
 # * jq is needed for some dictionaries
 # * odbc is needed for some postgresql dictionaries like cf_zone
 RUN apt-get update && \
-    apt-get -y install \
+    DEBIAN_FRONTEND=noninteractive apt-get -y install \
         clickhouse-server=${version} \
         clickhouse-common-static=${version} \
         clickhouse-client=${version} \

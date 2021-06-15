@@ -4,7 +4,7 @@ FROM clickhouse:latest
 ARG version
 
 RUN apt-get update && \
-    apt-get -y install \
+    DEBIAN_FRONTEND=noninteractive apt-get -y install \
         clickhouse-common-static-dbg=${version} \
         # And minimum set of debugging tools.
         gdb procps binutils elfutils libstdc++6 libc6-dbg vim && \

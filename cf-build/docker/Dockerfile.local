@@ -1,3 +1,5 @@
+ARG CLOUDFLARE_DOCKER_REGISTRY_HOST=registry.cfdata.org
+
 FROM scratch as artifacts_as_single_layer
 
 # This results in gigantic image size, could be fixed in the future with https://github.com/moby/moby/issues/12169.
@@ -6,7 +8,7 @@ COPY clickhouse-common-static_*.deb /packages/clickhouse-common-static_*.deb
 COPY clickhouse-server_*.deb /packages/clickhouse-server_*.deb
 COPY clickhouse-client_*.deb /packages/clickhouse-client_*.deb
 
-FROM docker-registry.cfdata.org/stash/plat/dockerfiles/debian-buster/master:2020.3.0
+FROM ${CLOUDFLARE_DOCKER_REGISTRY_HOST}/stash/cf/debian-images/buster/main:2021.4.0
 
 COPY --from=artifacts_as_single_layer /packages /packages
 
@@ -15,7 +17,7 @@ ARG version
 # * jq is needed for some dictionaries
 # * odbc is needed for some postgresql dictionaries like cf_zone
 RUN apt-get update && \
-    apt-get -y install \
+    DEBIAN_FRONTEND=noninteractive apt-get -y install \
         /packages/clickhouse*.deb \
         jq \
         python-requests \

@@ -25,7 +25,7 @@ cat > /etc/clickhouse-server/config.d/local_interserver.xml << EOF
 EOF
 
 # These are now moved to `docker/test/base/Dockerfile` in upstream.
-echo "TSAN_OPTIONS='verbosity=1000 halt_on_error=1 history_size=7'" >> /etc/environment
+echo "TSAN_OPTIONS='verbosity=1000 halt_on_error=1 history_size=7 suppressions=$PWD/cf-build/tests/tsan_suppressions.txt'" >> /etc/environment
 echo "TSAN_SYMBOLIZER_PATH=/usr/lib/llvm-11/bin/llvm-symbolizer" >> /etc/environment
 echo "UBSAN_OPTIONS='print_stacktrace=1'" >> /etc/environment
 echo "ASAN_SYMBOLIZER_PATH=/usr/lib/llvm-11/bin/llvm-symbolizer" >> /etc/environment

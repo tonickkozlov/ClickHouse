@@ -2,27 +2,56 @@
 
 default-flavor: buster
 
+build_deps: &build_deps
+  # Release build requirements
+  ? ccache
+  # Common
+  ? debhelper
+  ? devscripts
+  ? fakeroot
+  ? git-core
+  ? gperf
+  ? libreadline-dev
+  ? libtool
+  ? ninja-build
+  ? pkg-config
+  ? tzdata
+  ? cmake
+  ? s4cmd
+  ? wget
+
+tests_deps: &tests_deps
+  # clickhouse-test requirements
+  ? brotli
+  ? expect
+  ? lsof
+  ? moreutils # for ts command
+  ? netcat-openbsd
+  ? procps
+  ? expect
+  ? python3
+  ? python3-pip
+  ? python3-lxml
+  ? python3-requests
+  ? python3-termcolor
+  ? python3-pip
+  ? qemu-user-static
+  ? telnet
+  ? tree
+  ? zstd
+  ? xz-utils
+  ? wget
+  ? psmisc
+  # For testing CH's psql interface which we can't disable.
+  ? postgresql-client
+
+
 buster:
   # cfsetup build [--ccache] -f buster
   build:
     build_dir: /cfsetup_build/clickhouse
     builddeps:
-      # Release build requirements
-      - ccache
-      # Common
-      - debhelper
-      - devscripts
-      - fakeroot
-      - git-core
-      - gperf
-      - libreadline-dev
-      - libtool
-      - ninja-build
-      - pkg-config
-      - tzdata
-      - cmake
-      - s4cmd
-      - wget
+      <<: *build_deps
     pre-cache:
       # LLVM
       - wget -nv -O /tmp/llvm-snapshot.gpg.key https://apt.llvm.org/llvm-snapshot.gpg.key
@@ -45,21 +74,7 @@ buster:
   build_asan:
     build_dir: /cfsetup_build/clickhouse
     builddeps:
-      - wget
-      - ccache
-      # Common
-      - debhelper
-      - devscripts
-      - fakeroot
-      - git-core
-      - gperf
-      - libreadline-dev
-      - libtool
-      - ninja-build
-      - pkg-config
-      - tzdata
-      - cmake
-      - s4cmd
+      <<: *build_deps
     pre-cache:
       # LLVM
       - wget -nv -O /tmp/llvm-snapshot.gpg.key https://apt.llvm.org/llvm-snapshot.gpg.key
@@ -72,7 +87,6 @@ buster:
       - sudo chown -R $(id -u):$(id -g) ..
       # Configure this build
       - export S3_CCACHE_KEY_SUFFIX=asan
-      - export ENABLE_TESTS=1  # avoid stripping
       - export SANITIZER=address
       - export DEB_CC=clang-11
       - export DEB_CXX=clang++-11
@@ -85,21 +99,7 @@ buster:
   build_tsan:
     build_dir: /cfsetup_build/clickhouse
     builddeps:
-      - wget
-      - ccache
-      # Common
-      - debhelper
-      - devscripts
-      - fakeroot
-      - git-core
-      - gperf
-      - libreadline-dev
-      - libtool
-      - ninja-build
-      - pkg-config
-      - tzdata
-      - cmake
-      - s4cmd
+      <<: *build_deps
     pre-cache:
       # LLVM
       - wget -nv -O /tmp/llvm-snapshot.gpg.key https://apt.llvm.org/llvm-snapshot.gpg.key
@@ -112,7 +112,6 @@ buster:
       - sudo chown -R $(id -u):$(id -g) ..
       # Configure this build
       - export S3_CCACHE_KEY_SUFFIX=tsan
-      - export ENABLE_TESTS=1 # avoid stripping
       - export SANITIZER=thread
       - export DEB_CC=clang-11
       - export DEB_CXX=clang++-11
@@ -128,28 +127,7 @@ buster:
     cap_add:
       - SYS_PTRACE # For LeakSanitizer (part of asan)
     builddeps:
-      # clickhouse-test requirements
-      - brotli
-      - expect
-      - lsof
-      - moreutils # for ts command
-      - netcat-openbsd
-      - procps
-      - expect
-      - python3
-      - python3-pip
-      - python3-lxml
-      - python3-requests
-      - python3-termcolor
-      - python3-pip
-      - qemu-user-static
-      - telnet
-      - tree
-      - zstd
-      - xz-utils
-      - wget
-      # For testing CH's psql interface which we can't disable.
-      - postgresql-client
+      <<: *tests_deps
     pre-cache:
       # Additional test dependencies.
       - pip3 install numpy scipy pandas
@@ -172,34 +150,8 @@ buster:
   fasttest:
     build_dir: /cfsetup_build/clickhouse
     builddeps:
-      # Unique to fasttest
-      - ccache
-      - lsb-release
-      - moreutils # for ts command
-      - procps
-      - psmisc
-      - wget
-      # clickhouse-test requirements
-      - expect
-      - python3
-      - python3-pip
-      - python3-lxml
-      - python3-requests
-      - python3-termcolor
-      - qemu-user-static
-      # Common
-      - debhelper
-      - devscripts
-      - fakeroot
-      - git-core
-      - gperf
-      - libreadline-dev
-      - libtool
-      - ninja-build
-      - pkg-config
-      - tzdata
-      - cmake
-      - s4cmd
+      <<: *build_deps
+      <<: *tests_deps
     pre-cache:
       # Additional test dependencies.
       - pip3 install numpy scipy pandas

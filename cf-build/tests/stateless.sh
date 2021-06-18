@@ -24,13 +24,12 @@ cat > /etc/clickhouse-server/config.d/local_interserver.xml << EOF
 </yandex>
 EOF
 
+ln -s /usr/lib/llvm-11/bin/llvm-symbolizer /usr/bin/llvm-symbolizer
+
 # These are now moved to `docker/test/base/Dockerfile` in upstream.
 echo "TSAN_OPTIONS='verbosity=1000 halt_on_error=1 history_size=7 suppressions=$PWD/cf-build/tests/tsan_suppressions.txt'" >> /etc/environment
-echo "TSAN_SYMBOLIZER_PATH=/usr/lib/llvm-11/bin/llvm-symbolizer" >> /etc/environment
+echo "MSAN_OPTIONS='abort_on_error=1 poison_in_dtor=1'" >> /etc/environment
 echo "UBSAN_OPTIONS='print_stacktrace=1'" >> /etc/environment
-echo "ASAN_SYMBOLIZER_PATH=/usr/lib/llvm-11/bin/llvm-symbolizer" >> /etc/environment
-echo "UBSAN_SYMBOLIZER_PATH=/usr/lib/llvm-11/bin/llvm-symbolizer" >> /etc/environment
-echo "LLVM_SYMBOLIZER_PATH=/usr/lib/llvm-11/bin/llvm-symbolizer" >> /etc/environment
 
 service clickhouse-server start && sleep 5
 
@@ -55,6 +54,8 @@ function run_tests()
     # We can have several additional options so we path them as array because it's
     # more ideologically correct.
     read -ra ADDITIONAL_OPTIONS <<< "${ADDITIONAL_OPTIONS:-}"
+
+#    with_sanitizer=$(clickhouse client -q "SELECT count() FROM system.build_options WHERE name = 'CXX_FLAGS' AND value like '%-fsanitize%'")
 
     ADDITIONAL_OPTIONS+=('--jobs')
     ADDITIONAL_OPTIONS+=('8')

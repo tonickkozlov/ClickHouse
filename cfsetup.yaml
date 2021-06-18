@@ -120,6 +120,56 @@ buster:
     artifacts:
       - '../*.deb'
 
+  # cfsetup build [--ccache] -f buster -yt build_msan
+  build_msan:
+    build_dir: /cfsetup_build/clickhouse
+    builddeps:
+      <<: *build_deps
+    pre-cache:
+      # LLVM
+      - wget -nv -O /tmp/llvm-snapshot.gpg.key https://apt.llvm.org/llvm-snapshot.gpg.key
+      - echo "bda960a8da687a275a2078d43c111d66b1c6a893a3275271beedf266c1ff4a0cdecb429c7a5cccf9f486ea7aa43fd27f /tmp/llvm-snapshot.gpg.key" | sha384sum -c
+      - apt-key add --armor /tmp/llvm-snapshot.gpg.key
+      - echo "deb [trusted=yes] https://apt.llvm.org/buster/ llvm-toolchain-buster-11 main" >> /etc/apt/sources.list
+      - apt-get update
+      - apt-get install --yes --no-install-recommends clang-11 lld-11 llvm-11
+    post-cache:
+      - sudo chown -R $(id -u):$(id -g) ..
+      # Configure this build
+      - export S3_CCACHE_KEY_SUFFIX=msan
+      - export SANITIZER=thread
+      - export DEB_CC=clang-11
+      - export DEB_CXX=clang++-11
+      # Action
+      - ./cf-build/release.sh
+    artifacts:
+      - '../*.deb'
+
+  # cfsetup build [--ccache] -f buster -yt build_ubsan
+  build_ubsan:
+    build_dir: /cfsetup_build/clickhouse
+    builddeps:
+      <<: *build_deps
+    pre-cache:
+      # LLVM
+      - wget -nv -O /tmp/llvm-snapshot.gpg.key https://apt.llvm.org/llvm-snapshot.gpg.key
+      - echo "bda960a8da687a275a2078d43c111d66b1c6a893a3275271beedf266c1ff4a0cdecb429c7a5cccf9f486ea7aa43fd27f /tmp/llvm-snapshot.gpg.key" | sha384sum -c
+      - apt-key add --armor /tmp/llvm-snapshot.gpg.key
+      - echo "deb [trusted=yes] https://apt.llvm.org/buster/ llvm-toolchain-buster-11 main" >> /etc/apt/sources.list
+      - apt-get update
+      - apt-get install --yes --no-install-recommends clang-11 lld-11 llvm-11
+    post-cache:
+      - sudo chown -R $(id -u):$(id -g) ..
+      # Configure this build
+      - export S3_CCACHE_KEY_SUFFIX=ubsan
+      - export SANITIZER=thread
+      - export DEB_CC=clang-11
+      - export DEB_CXX=clang++-11
+      # Action
+      - ./cf-build/release.sh
+    artifacts:
+      - '../*.deb'
+
   # cfsetup build -f buster -yt tests_stateless
   tests_stateless:
     build_dir: /cfsetup_build/clickhouse

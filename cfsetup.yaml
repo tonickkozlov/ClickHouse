@@ -1,0 +1,244 @@
+# Default compiler used by upstream can be found in `docker/packager/deb/Dockerfile`.
+
+default-flavor: buster
+
+build_deps: &build_deps
+  # Release build requirements
+  ? ccache
+  # Common
+  ? debhelper
+  ? devscripts
+  ? fakeroot
+  ? git-core
+  ? gperf
+  ? libreadline-dev
+  ? libtool
+  ? ninja-build
+  ? pkg-config
+  ? tzdata
+  ? cmake
+  ? s4cmd
+  ? wget
+
+tests_deps: &tests_deps
+  # clickhouse-test requirements
+  ? brotli
+  ? expect
+  ? lsof
+  ? moreutils # for ts command
+  ? netcat-openbsd
+  ? procps
+  ? expect
+  ? python3
+  ? python3-pip
+  ? python3-lxml
+  ? python3-requests
+  ? python3-termcolor
+  ? python3-pip
+  ? qemu-user-static
+  ? telnet
+  ? tree
+  ? zstd
+  ? xz-utils
+  ? wget
+  ? psmisc
+  # For testing CH's psql interface which we can't disable.
+  ? postgresql-client
+
+
+buster:
+  # cfsetup build [--ccache] -f buster
+  build:
+    build_dir: /cfsetup_build/clickhouse
+    builddeps:
+      <<: *build_deps
+    pre-cache:
+      # LLVM
+      - wget -nv -O /tmp/llvm-snapshot.gpg.key https://apt.llvm.org/llvm-snapshot.gpg.key
+      - echo "bda960a8da687a275a2078d43c111d66b1c6a893a3275271beedf266c1ff4a0cdecb429c7a5cccf9f486ea7aa43fd27f /tmp/llvm-snapshot.gpg.key" | sha384sum -c
+      - apt-key add --armor /tmp/llvm-snapshot.gpg.key
+      - echo "deb [trusted=yes] https://apt.llvm.org/buster/ llvm-toolchain-buster-11 main" >> /etc/apt/sources.list
+      - apt-get update
+      - apt-get install --yes --no-install-recommends clang-11 lld-11 llvm-11
+    post-cache:
+      - sudo chown -R $(id -u):$(id -g) ..
+      # Configure this build
+      - export DEB_CC=clang-11
+      - export DEB_CXX=clang++-11
+      # Action
+      - ./cf-build/release.sh
+    artifacts:
+      - '../*.deb'
+
+  # cfsetup build [--ccache] -f buster -yt build_asan
+  build_asan:
+    build_dir: /cfsetup_build/clickhouse
+    builddeps:
+      <<: *build_deps
+    pre-cache:
+      # LLVM
+      - wget -nv -O /tmp/llvm-snapshot.gpg.key https://apt.llvm.org/llvm-snapshot.gpg.key
+      - echo "bda960a8da687a275a2078d43c111d66b1c6a893a3275271beedf266c1ff4a0cdecb429c7a5cccf9f486ea7aa43fd27f /tmp/llvm-snapshot.gpg.key" | sha384sum -c
+      - apt-key add --armor /tmp/llvm-snapshot.gpg.key
+      - echo "deb [trusted=yes] https://apt.llvm.org/buster/ llvm-toolchain-buster-11 main" >> /etc/apt/sources.list
+      - apt-get update
+      - apt-get install --yes --no-install-recommends clang-11 lld-11 llvm-11
+    post-cache:
+      - sudo chown -R $(id -u):$(id -g) ..
+      # Configure this build
+      - export S3_CCACHE_KEY_SUFFIX=asan
+      - export SANITIZER=address
+      - export DEB_CC=clang-11
+      - export DEB_CXX=clang++-11
+      # Action
+      - ./cf-build/release.sh
+    artifacts:
+      - '../*.deb'
+
+  # cfsetup build [--ccache] -f buster -yt build_tsan
+  build_tsan:
+    build_dir: /cfsetup_build/clickhouse
+    builddeps:
+      <<: *build_deps
+    pre-cache:
+      # LLVM
+      - wget -nv -O /tmp/llvm-snapshot.gpg.key https://apt.llvm.org/llvm-snapshot.gpg.key
+      - echo "bda960a8da687a275a2078d43c111d66b1c6a893a3275271beedf266c1ff4a0cdecb429c7a5cccf9f486ea7aa43fd27f /tmp/llvm-snapshot.gpg.key" | sha384sum -c
+      - apt-key add --armor /tmp/llvm-snapshot.gpg.key
+      - echo "deb [trusted=yes] https://apt.llvm.org/buster/ llvm-toolchain-buster-11 main" >> /etc/apt/sources.list
+      - apt-get update
+      - apt-get install --yes --no-install-recommends clang-11 lld-11 llvm-11
+    post-cache:
+      - sudo chown -R $(id -u):$(id -g) ..
+      # Configure this build
+      - export S3_CCACHE_KEY_SUFFIX=tsan
+      - export SANITIZER=thread
+      - export DEB_CC=clang-11
+      - export DEB_CXX=clang++-11
+      # Action
+      - ./cf-build/release.sh
+    artifacts:
+      - '../*.deb'
+
+  # cfsetup build [--ccache] -f buster -yt build_msan
+  build_msan:
+    build_dir: /cfsetup_build/clickhouse
+    builddeps:
+      <<: *build_deps
+    pre-cache:
+      # LLVM
+      - wget -nv -O /tmp/llvm-snapshot.gpg.key https://apt.llvm.org/llvm-snapshot.gpg.key
+      - echo "bda960a8da687a275a2078d43c111d66b1c6a893a3275271beedf266c1ff4a0cdecb429c7a5cccf9f486ea7aa43fd27f /tmp/llvm-snapshot.gpg.key" | sha384sum -c
+      - apt-key add --armor /tmp/llvm-snapshot.gpg.key
+      - echo "deb [trusted=yes] https://apt.llvm.org/buster/ llvm-toolchain-buster-11 main" >> /etc/apt/sources.list
+      - apt-get update
+      - apt-get install --yes --no-install-recommends clang-11 lld-11 llvm-11
+    post-cache:
+      - sudo chown -R $(id -u):$(id -g) ..
+      # Configure this build
+      - export S3_CCACHE_KEY_SUFFIX=msan
+      - export SANITIZER=thread
+      - export DEB_CC=clang-11
+      - export DEB_CXX=clang++-11
+      # Action
+      - ./cf-build/release.sh
+    artifacts:
+      - '../*.deb'
+
+  # cfsetup build [--ccache] -f buster -yt build_ubsan
+  build_ubsan:
+    build_dir: /cfsetup_build/clickhouse
+    builddeps:
+      <<: *build_deps
+    pre-cache:
+      # LLVM
+      - wget -nv -O /tmp/llvm-snapshot.gpg.key https://apt.llvm.org/llvm-snapshot.gpg.key
+      - echo "bda960a8da687a275a2078d43c111d66b1c6a893a3275271beedf266c1ff4a0cdecb429c7a5cccf9f486ea7aa43fd27f /tmp/llvm-snapshot.gpg.key" | sha384sum -c
+      - apt-key add --armor /tmp/llvm-snapshot.gpg.key
+      - echo "deb [trusted=yes] https://apt.llvm.org/buster/ llvm-toolchain-buster-11 main" >> /etc/apt/sources.list
+      - apt-get update
+      - apt-get install --yes --no-install-recommends clang-11 lld-11 llvm-11
+    post-cache:
+      - sudo chown -R $(id -u):$(id -g) ..
+      # Configure this build
+      - export S3_CCACHE_KEY_SUFFIX=ubsan
+      - export SANITIZER=thread
+      - export DEB_CC=clang-11
+      - export DEB_CXX=clang++-11
+      # Action
+      - ./cf-build/release.sh
+    artifacts:
+      - '../*.deb'
+
+  # cfsetup build -f buster -yt tests_stateless
+  tests_stateless:
+    build_dir: /cfsetup_build/clickhouse
+    nosubmodule: true
+    cap_add:
+      - SYS_PTRACE # For LeakSanitizer (part of asan)
+    builddeps:
+      <<: *tests_deps
+    pre-cache:
+      # Additional test dependencies.
+      - pip3 install numpy scipy pandas
+      # LLVM; want symbolizers for crashes
+      - wget -nv -O /tmp/llvm-snapshot.gpg.key https://apt.llvm.org/llvm-snapshot.gpg.key
+      - echo "bda960a8da687a275a2078d43c111d66b1c6a893a3275271beedf266c1ff4a0cdecb429c7a5cccf9f486ea7aa43fd27f /tmp/llvm-snapshot.gpg.key" | sha384sum -c
+      - apt-key add --armor /tmp/llvm-snapshot.gpg.key
+      - echo "deb [trusted=yes] https://apt.llvm.org/buster/ llvm-toolchain-buster-11 main" >> /etc/apt/sources.list
+      - apt-get update
+      - apt-get install --yes --no-install-recommends llvm-11
+    post-cache:
+      # Functional tests by default expect Moscow timezone
+      - export TZ=Europe/Moscow
+      - sudo ln -snf /usr/share/zoneinfo/$TZ /etc/localtime
+      - echo $TZ | sudo tee /etc/timezone
+      # Action
+      - sudo -E ./cf-build/tests/stateless.sh
+
+  # cfsetup build -f buster -yt fasttest
+  fasttest:
+    build_dir: /cfsetup_build/clickhouse
+    builddeps:
+      <<: *build_deps
+      <<: *tests_deps
+    pre-cache:
+      # Additional test dependencies.
+      - pip3 install numpy scipy pandas
+      # LLVM
+      - wget -nv -O /tmp/llvm-snapshot.gpg.key https://apt.llvm.org/llvm-snapshot.gpg.key
+      - echo "bda960a8da687a275a2078d43c111d66b1c6a893a3275271beedf266c1ff4a0cdecb429c7a5cccf9f486ea7aa43fd27f /tmp/llvm-snapshot.gpg.key" | sha384sum -c
+      - apt-key add --armor /tmp/llvm-snapshot.gpg.key
+      - echo "deb [trusted=yes] https://apt.llvm.org/buster/ llvm-toolchain-buster-11 main" >> /etc/apt/sources.list
+      - apt-get update
+      - apt-get install --yes --no-install-recommends clang-11 lld-11 llvm-11
+    post-cache:
+      # Functional tests by default expect Moscow timezone
+      - export TZ=Europe/Moscow
+      - sudo ln -snf /usr/share/zoneinfo/$TZ /etc/localtime
+      - echo $TZ | sudo tee /etc/timezone
+      # Prep
+      - sudo mkdir -p /var/lib/clickhouse /var/log/clickhouse-server
+      - sudo chown -R $(id -u):$(id -g) /var/lib/clickhouse /var/log/clickhouse-server
+      # Action
+      - ./cf-build/fasttest.sh
+    artifacts:
+      - '/cfsetup_build/clickhouse/build_fasttest/out/*'
+
+  # cfsetup build -f buster -yt dib-apt
+  dib-apt:
+    build_dir: /cfsetup_build/clickhouse
+    post-cache:
+      - ./cf-build/docker/gen-dib.sh apt
+
+  # cfsetup build -f buster -yt dib-local
+  dib-local:
+    build_dir: /cfsetup_build/clickhouse
+    post-cache:
+      - ./cf-build/docker/gen-dib.sh local
+
+stretch:
+  build:
+    post-cache:
+      # do nothing
+      - exit 0

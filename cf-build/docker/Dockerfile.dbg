@@ -1,0 +1,16 @@
+# clickhouse:latest is the image built by previous dib step.
+FROM clickhouse:latest
+
+ARG version
+
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get -y install \
+        clickhouse-common-static-dbg=${version} \
+        # And minimum set of debugging tools.
+        gdb procps binutils elfutils libc6-dbg vim && \
+    /build/cleanup.sh
+
+COPY gdb/gdb-printers-libcxx /usr/local/share/gdb-printers-libcxx
+COPY gdb/.gdbinit /root/.gdbinit
+
+ENTRYPOINT ["/usr/bin/clickhouse-server", "--config=/etc/clickhouse-server/config.xml"]

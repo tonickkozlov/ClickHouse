@@ -1,0 +1,5 @@
+# These are runtime suppressions.
+# Compile time suppression are defined in tests/tsan_suppressions.txt
+
+# https://jira.cfops.it/browse/CLICKHOUSE-1165
+race:*libunwind::CFI_Parser*parseInstructions*

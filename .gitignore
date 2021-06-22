@@ -144,3 +144,7 @@ website/package-lock.json
 /programs/server/metadata
 /programs/server/store
 
+# Cloudflare specifics
+/.docker-images
+/test_output
+

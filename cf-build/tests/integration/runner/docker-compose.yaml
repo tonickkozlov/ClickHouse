@@ -1,0 +1,18 @@
+version: "2.4"
+services:
+  runner:
+    build:
+      context: .
+      args:
+        CLOUDFLARE_DOCKER_REGISTRY_HOST: ${CLOUDFLARE_DOCKER_REGISTRY_HOST:-registry.cfdata.org}
+    environment:
+      - CI
+      - WAIT_DONT_RUN
+    command: ./cf-build/tests/integration/runner/entrypoint.sh
+    working_dir: /clickhouse
+    privileged: true
+    volumes:
+      - ../../../../:/clickhouse
+      - docker_data:/var/lib/docker
+volumes:
+  docker_data: {}

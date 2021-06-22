@@ -147,4 +147,5 @@ website/package-lock.json
 # Cloudflare specifics
 /.docker-images
 /test_output
+.tmp*.cfsetup
 

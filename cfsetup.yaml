@@ -243,6 +243,24 @@ buster:
     post-cache:
       - ./cf-build/docker/gen-dib.sh local
 
+# cfsetup compose -s tests_integration up
+tests_integration:
+  compose:
+    environment-whitelist:
+      - SSH_AUTH_SOCK
+      - CI
+      - CLOUDFLARE_DOCKER_REGISTRY_HOST
+      # Do not run tests but hang.
+      # Use `docker exec` to interact with the container.
+      - WAIT_DONT_RUN
+    up-args:
+      - --build
+      - --force-recreate
+      - --renew-anon-volumes
+    files:
+      - ./cf-build/tests/integration/runner/docker-compose.yaml
+
+
 stretch:
   build:
     post-cache:

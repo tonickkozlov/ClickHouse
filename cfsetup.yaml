@@ -253,6 +253,8 @@ tests_integration:
       - --build
       - --force-recreate
       - --renew-anon-volumes
+      - --exit-code-from
+      - runner
     files:
       - ./cf-build/tests/integration/runner/docker-compose.yaml
 

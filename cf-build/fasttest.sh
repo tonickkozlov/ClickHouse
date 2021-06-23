@@ -185,11 +185,11 @@ function run_cmake
 upload_ccache_done=0
 function upload_ccache
 {
-  upload_ccache_done=1
-
   if [[ -n "$CCACHE_ACCESS_KEY" && "$upload_ccache_done" -ne "1" ]]; then
     python3 $FASTTEST_SOURCE/cf-build/ccache_utils.py upload
   fi
+
+  upload_ccache_done=1
 }
 
 function build

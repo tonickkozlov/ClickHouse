@@ -137,7 +137,7 @@ buster:
       - sudo chown -R $(id -u):$(id -g) ..
       # Configure this build
       - export S3_CCACHE_KEY_SUFFIX=msan
-      - export SANITIZER=thread
+      - export SANITIZER=memory
       - export DEB_CC=clang-11
       - export DEB_CXX=clang++-11
       # Action
@@ -162,7 +162,7 @@ buster:
       - sudo chown -R $(id -u):$(id -g) ..
       # Configure this build
       - export S3_CCACHE_KEY_SUFFIX=ubsan
-      - export SANITIZER=thread
+      - export SANITIZER=undefined
       - export DEB_CC=clang-11
       - export DEB_CXX=clang++-11
       # Action

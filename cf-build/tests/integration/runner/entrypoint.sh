@@ -42,12 +42,15 @@ while true; do
 done
 set -e
 
+# "shell" container that is used to run clickhouse servers w/ the binary mounted.
 docker build -t yandex/clickhouse-integration-test ./cf-build/tests/integration/shell
+
+# Just use the same image. We pre-installed iptables.
+docker tag yandex/clickhouse-integration-test yandex/clickhouse-integration-helper
 
 # Drop extra capabilities which were added when the package was built.
 # We don't need them for tests.
 setcap -r /usr/bin/clickhouse
-
 
 if [[ -n ${WAIT_DONT_RUN+x} ]]; then
   echo "Environment prepared, you can now interact with the container via docker exec."
@@ -62,6 +65,57 @@ collect_logs() {
 }
 trap collect_logs ERR EXIT
 
+PYTEST_EXTRA_ARGS=${PYTEST_EXTRA_ARGS:-""}
+
+read -ra PYTEST_EXTRA_ARGS <<< "${PYTEST_EXTRA_ARGS:-}"
+read -ra TESTS_TO_RUN <<< "${TESTS_TO_RUN:-}"
+
+if [[ ${#TESTS_TO_RUN[@]} -eq 0 ]]; then
+  TESTS_TO_RUN=(
+    test_adaptive_granularity
+    test_adaptive_granularity_different_settings
+    test_adaptive_granularity_replicated
+    test_alter_codec
+    test_authentication
+    test_broken_part_during_merge
+    test_cleanup_dir_after_bad_zk_conn
+    test_cluster_all_replicas
+    test_compression_codec_read
+    test_concurrent_queries_for_all_users_restriction
+    test_concurrent_queries_for_user_restriction
+    test_config_corresponding_root
+    test_config_substitutions
+    test_config_xml_full
+    test_config_xml_main
+    test_config_xml_yaml_mix
+    test_consistent_parts_after_clone_replica
+    test_cross_replication
+    test_drop_replica
+    test_http_and_readonly
+    test_https_replication
+    test_non_default_compression
+    test_optimize_on_insert
+    test_part_moves_between_shards
+    test_part_uuid
+    test_partition
+    test_parts_delete_zookeeper
+    test_polymorphic_parts
+    test_query_deduplication
+    test_quorum_inserts_parallel
+    test_recovery_replica
+    test_replace_partition
+    test_replicated_mutations
+    test_replicated_parse_zk_metadata
+    test_timezone_config
+    test_ttl_replicated
+    test_user_ip_restrictions
+    test_version_update_after_mutation
+    test_zookeeper_config
+  )
+fi
+
 # Action!
 cd /clickhouse/tests/integration
-pytest test_adaptive_granularity* test_part_moves_between_shards --maxfail=10 | tee /clickhouse/artifacts/test_result.txt
+
+# shellcheck disable=SC2068
+pytest ${TESTS_TO_RUN[@]} ${PYTEST_EXTRA_ARGS[@]} | tee /clickhouse/artifacts/test_result.txt

@@ -7,6 +7,8 @@ services:
         CLOUDFLARE_DOCKER_REGISTRY_HOST: ${CLOUDFLARE_DOCKER_REGISTRY_HOST:-registry.cfdata.org}
     environment:
       - CI
+      - TESTS_TO_RUN
+      - PYTEST_EXTRA_ARGS
       - WAIT_DONT_RUN
     command: ./cf-build/tests/integration/runner/entrypoint.sh
     working_dir: /clickhouse

@@ -252,6 +252,8 @@ tests_integration:
       - CLOUDFLARE_DOCKER_REGISTRY_HOST
       # Do not run tests but hang.
       # Use `docker exec` to interact with the container.
+      - TESTS_TO_RUN
+      - PYTEST_EXTRA_ARGS
       - WAIT_DONT_RUN
     up-args:
       - --build

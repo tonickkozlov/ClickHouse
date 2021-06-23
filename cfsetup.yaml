@@ -76,7 +76,6 @@ buster:
     builddeps:
       <<: *build_deps
     pre-cache:
-      - exit 1 # temporarily fail build to avoid stressing CI
       # LLVM
       - wget -nv -O /tmp/llvm-snapshot.gpg.key https://apt.llvm.org/llvm-snapshot.gpg.key
       - echo "bda960a8da687a275a2078d43c111d66b1c6a893a3275271beedf266c1ff4a0cdecb429c7a5cccf9f486ea7aa43fd27f /tmp/llvm-snapshot.gpg.key" | sha384sum -c
@@ -102,7 +101,6 @@ buster:
     builddeps:
       <<: *build_deps
     pre-cache:
-      - exit 1 # temporarily fail build to avoid stressing CI
       # LLVM
       - wget -nv -O /tmp/llvm-snapshot.gpg.key https://apt.llvm.org/llvm-snapshot.gpg.key
       - echo "bda960a8da687a275a2078d43c111d66b1c6a893a3275271beedf266c1ff4a0cdecb429c7a5cccf9f486ea7aa43fd27f /tmp/llvm-snapshot.gpg.key" | sha384sum -c
@@ -128,7 +126,6 @@ buster:
     builddeps:
       <<: *build_deps
     pre-cache:
-      - exit 1 # temporarily fail build to avoid stressing CI
       # LLVM
       - wget -nv -O /tmp/llvm-snapshot.gpg.key https://apt.llvm.org/llvm-snapshot.gpg.key
       - echo "bda960a8da687a275a2078d43c111d66b1c6a893a3275271beedf266c1ff4a0cdecb429c7a5cccf9f486ea7aa43fd27f /tmp/llvm-snapshot.gpg.key" | sha384sum -c
@@ -154,7 +151,6 @@ buster:
     builddeps:
       <<: *build_deps
     pre-cache:
-      - exit 1 # temporarily fail build to avoid stressing CI
       # LLVM
       - wget -nv -O /tmp/llvm-snapshot.gpg.key https://apt.llvm.org/llvm-snapshot.gpg.key
       - echo "bda960a8da687a275a2078d43c111d66b1c6a893a3275271beedf266c1ff4a0cdecb429c7a5cccf9f486ea7aa43fd27f /tmp/llvm-snapshot.gpg.key" | sha384sum -c
@@ -183,7 +179,6 @@ buster:
     builddeps:
       <<: *tests_deps
     pre-cache:
-      - exit 1 # temporarily fail build to avoid stressing CI
       # Additional test dependencies.
       - pip3 install numpy scipy pandas
       # LLVM; want symbolizers for crashes
@@ -208,7 +203,6 @@ buster:
       <<: *build_deps
       <<: *tests_deps
     pre-cache:
-      - exit 1 # temporarily fail build to avoid stressing CI
       # Additional test dependencies.
       - pip3 install numpy scipy pandas
       # LLVM

@@ -72,6 +72,10 @@ read -ra TESTS_TO_RUN <<< "${TESTS_TO_RUN:-}"
 
 if [[ ${#TESTS_TO_RUN[@]} -eq 0 ]]; then
   TESTS_TO_RUN=(
+    # Cloudflare tests:
+    test_alter_to_stuck
+
+    # Upstream tests:
     test_adaptive_granularity
     test_adaptive_granularity_different_settings
     test_adaptive_granularity_replicated

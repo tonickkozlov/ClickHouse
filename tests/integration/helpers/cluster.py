@@ -686,9 +686,14 @@ class ClickHouseCluster:
                 except:
                     pass
 
-            clickhouse_pull_cmd = self.base_cmd + ['pull']
-            print(f"Pulling images for {self.base_cmd}")
-            retry_exception(10, 5, subprocess_check_call, Exception, clickhouse_pull_cmd)
+            # Cloudflare: Do not pull images as we want to use locally built ones
+            #   when available. TBD: Make this optional and submit to upstream.
+            #   Upstream should want this too as it will allow to run tests with
+            #   locally built images which is now impossible.
+            if False:
+                clickhouse_pull_cmd = self.base_cmd + ['pull']
+                print(f"Pulling images for {self.base_cmd}")
+                retry_exception(10, 5, subprocess_check_call, Exception, clickhouse_pull_cmd)
 
             self.docker_client = docker.from_env(version=self.docker_api_version)
 

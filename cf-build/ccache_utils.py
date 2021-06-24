@@ -19,7 +19,8 @@ def git_branch():
 
 def ccache_read_keys():
     # Avoid reading ccache for production builds. Paranoid.
-    if git_branch() == "cf/master" or git_branch().startswith('cf/v'):
+    # We consider all other branches as "testing".
+    if git_branch().startswith('cf/v'):
         return []
 
     return [

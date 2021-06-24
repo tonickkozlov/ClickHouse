@@ -1,0 +1,2 @@
+https://apt.cfdata.org/mirrors/docker/buster/stable	priority:1
+cfd+https://apt-access.cfdata.org/mirrors/docker/buster/stable	priority:2

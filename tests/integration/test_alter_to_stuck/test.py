@@ -168,6 +168,9 @@ def create_table(node):
 
 
 def test_no_stall(started_cluster):
+    if nodes[0].is_built_with_sanitizer:
+        pytest.skip("timing is off under sanitizers and test becomes flaky, test might need improvement")
+
     for node in nodes:
         create_table(node)
         node.query("SYSTEM STOP MERGES")

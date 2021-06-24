@@ -182,11 +182,23 @@ function run_cmake
     )
 }
 
+build_start_time=$(date +%s)
 upload_ccache_done=0
+
 function upload_ccache
 {
+  build_duration=$(date +%s)-$build_start_time
   if [[ -n "$CCACHE_ACCESS_KEY" && "$upload_ccache_done" -ne "1" ]]; then
-    python3 $FASTTEST_SOURCE/cf-build/ccache_utils.py upload
+    # Upload updated cache only if we spent a considerable amount of time building it.
+    # Otherwise we'll just spend 10 minutes uploading 10-15GB of cache without any
+    # benefit for subsequent builds.
+    if [[ $build_duration -gt 600 ]]; then
+      # Trim the cache before uploading.
+      # https://ccache.dev/manual/4.2.html#_manual_cleanup
+      export CCACHE_MAXSIZE=6G
+      ccache --cleanup && ccache --show-stats
+      python3 $FASTTEST_SOURCE/cf-build/ccache_utils.py upload
+    fi
   fi
 
   upload_ccache_done=1

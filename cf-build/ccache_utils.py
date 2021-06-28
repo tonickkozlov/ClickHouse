@@ -62,6 +62,7 @@ def download_ccache():
 
         if len(result.stdout) != 0:
             good_key = key
+            break
 
     if not good_key:
         print("no good key found, done")

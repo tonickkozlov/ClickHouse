@@ -168,7 +168,7 @@ def create_table(node):
 
 
 def test_no_stall(started_cluster):
-    if nodes[0].is_built_with_sanitizer:
+    if nodes[0].is_built_with_sanitizer():
         pytest.skip("timing is off under sanitizers and test becomes flaky, test might need improvement")
 
     for node in nodes:
@@ -271,4 +271,3 @@ def test_no_stall(started_cluster):
         for node in nodes:
             value_type = node.query("SELECT type FROM system.columns WHERE table = 't' and name = 'value'").strip()
             assert value_type == "UInt64", "got unexpected value type, alter was not applied on a node {} within the expected time".format(node.name)
-

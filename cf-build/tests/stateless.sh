@@ -85,6 +85,7 @@ function run_tests()
     ADDITIONAL_OPTIONS+=('01658_read_file_to_stringcolumn')
     ADDITIONAL_OPTIONS+=('01737_clickhouse_server_wait_server_pool_long')
     ADDITIONAL_OPTIONS+=('01507_clickhouse_server_start_with_embedded_config')
+    ADDITIONAL_OPTIONS+=('01594_too_low_memory_limits')
 
     # depends on Yandex internal infrastructure
     ADDITIONAL_OPTIONS+=('01801_s3_cluster')

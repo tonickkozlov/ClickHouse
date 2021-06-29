@@ -40,3 +40,5 @@ RUN pip3 install install \
         requests-kerberos \
         tzlocal \
         urllib3
+
+COPY misc/ /misc/

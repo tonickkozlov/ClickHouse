@@ -1,4 +1,4 @@
-
+import time
 
 import threading
 import os 
@@ -35,6 +35,8 @@ def started_cluster():
 
 # NOTE this test have to be ported to Keeper
 def test_secure_connection(started_cluster):
+        time.sleep(3)  # Bad test. Give DDL Worker threads some time be get scheduled...
+
         assert node1.query("SELECT count() FROM system.zookeeper WHERE path = '/'") == '2\n'
         assert node2.query("SELECT count() FROM system.zookeeper WHERE path = '/'") == '2\n'
 

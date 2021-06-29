@@ -11,7 +11,9 @@ RUN apt-get update && apt-get install --yes wget gnupg && \
     apt-get update && \
     apt-get install --yes --no-install-recommends \
         llvm-$LLVM_VERSION \
+        lsof \
         procps \
+        python3 \
         iptables && \
     rm -rf \
         /var/lib/apt/lists/* \

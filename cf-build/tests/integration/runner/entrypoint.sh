@@ -2,6 +2,7 @@
 
 set -euxo pipefail
 
+export DEBIAN_FRONTEND=noninteractive
 dpkg -i artifacts-in/clickhouse-common-static_*.deb
 dpkg -i artifacts-in/clickhouse-common-static-dbg_*.deb
 dpkg -i artifacts-in/clickhouse-server_*.deb

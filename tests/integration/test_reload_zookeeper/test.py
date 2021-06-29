@@ -91,6 +91,7 @@ def test_reload_zookeeper(start_cluster):
 """
     node.replace_config("/etc/clickhouse-server/conf.d/zookeeper.xml", new_config)
     node.query("SYSTEM RELOAD CONFIG")
+    node.query("SELECT count() FROM system.zookeeper WHERE path = '/'")  # Force create ZK connection.
 
     active_zk_connections = get_active_zk_connections()
     assert active_zk_connections == '1', "Total connections to ZooKeeper not equal to 1, {}".format(active_zk_connections)

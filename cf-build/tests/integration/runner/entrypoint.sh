@@ -2,6 +2,7 @@
 
 set -euxo pipefail
 
+export DEBIAN_FRONTEND=noninteractive
 dpkg -i artifacts-in/clickhouse-common-static_*.deb
 dpkg -i artifacts-in/clickhouse-common-static-dbg_*.deb
 dpkg -i artifacts-in/clickhouse-server_*.deb
@@ -76,10 +77,9 @@ if [[ ${#TESTS_TO_RUN[@]} -eq 0 ]]; then
     test_alter_to_stuck
 
     # Upstream tests:
-    test_adaptive_granularity
-    test_adaptive_granularity_different_settings
-    test_adaptive_granularity_replicated
     test_alter_codec
+    test_attach_without_checksums
+    test_attach_without_fetching
     test_authentication
     test_broken_part_during_merge
     test_cleanup_dir_after_bad_zk_conn
@@ -92,11 +92,15 @@ if [[ ${#TESTS_TO_RUN[@]} -eq 0 ]]; then
     test_config_xml_full
     test_config_xml_main
     test_config_xml_yaml_mix
+    test_consistant_parts_after_move_partition
     test_consistent_parts_after_clone_replica
     test_cross_replication
+    test_default_compression_codec
+    test_delayed_replica_failover
     test_drop_replica
     test_http_and_readonly
     test_https_replication
+    test_merge_tree_empty_parts
     test_non_default_compression
     test_optimize_on_insert
     test_part_moves_between_shards
@@ -107,9 +111,16 @@ if [[ ${#TESTS_TO_RUN[@]} -eq 0 ]]; then
     test_query_deduplication
     test_quorum_inserts_parallel
     test_recovery_replica
+    test_reload_clusters_config
+    test_reload_zookeeper
     test_replace_partition
     test_replicated_mutations
     test_replicated_parse_zk_metadata
+    test_replication_credentials
+    test_restore_replica
+    test_send_crash_reports
+    test_settings_constraints
+    test_settings_constraints_distributed
     test_timezone_config
     test_ttl_replicated
     test_user_ip_restrictions

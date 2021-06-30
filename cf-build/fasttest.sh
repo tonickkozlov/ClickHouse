@@ -372,6 +372,7 @@ function run_tests
         01257_dictionary_mismatch_types
 
         # These need investigation.
+        01288_shard_max_network_bandwidth
         01658_read_file_to_stringcolumn
     )
 

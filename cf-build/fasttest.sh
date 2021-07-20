@@ -345,6 +345,9 @@ function run_tests
         # Checks system.errors
         01563_distributed_query_finish
 
+        # pv - command not found
+        01923_network_receive_time_metric_insert
+
         # nc - command not found
         01601_proxy_protocol
         01622_defaults_for_url_engine

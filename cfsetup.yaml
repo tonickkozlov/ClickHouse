@@ -42,6 +42,7 @@ tests_deps: &tests_deps
   ? xz-utils
   ? wget
   ? psmisc
+  ? pv
   # For testing CH's psql interface which we can't disable.
   ? postgresql-client
 

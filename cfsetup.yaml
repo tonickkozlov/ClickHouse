@@ -178,7 +178,7 @@ buster:
       - cf-build/llvm_mirror.txt
     pre-cache:
       # Additional test dependencies.
-      - pip3 install numpy scipy pandas
+      - pip3 install numpy scipy pandas==1.2
       # LLVM; want symbolizers for crashes
       - echo "deb [trusted=yes] mirror+file:/cfsetup_build/clickhouse/cf-build/llvm_mirror.txt llvm-toolchain-buster-11 main" >> /etc/apt/sources.list
       - apt-get update
@@ -201,7 +201,7 @@ buster:
       - cf-build/llvm_mirror.txt
     pre-cache:
       # Additional test dependencies.
-      - pip3 install numpy scipy pandas
+      - pip3 install numpy scipy pandas==1.2
       # LLVM
       - echo "deb [trusted=yes] mirror+file:/cfsetup_build/clickhouse/cf-build/llvm_mirror.txt llvm-toolchain-buster-11 main" >> /etc/apt/sources.list
       - apt-get update

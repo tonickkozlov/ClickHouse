@@ -1,0 +1,2 @@
+https://apt.cfdata.org/mirrors/llvm-toolchain-buster-11	priority:1
+cfd+https://apt-access.cfdata.org/mirrors/llvm-toolchain-buster-11	priority:2

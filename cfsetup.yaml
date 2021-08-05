@@ -53,12 +53,11 @@ buster:
     build_dir: /cfsetup_build/clickhouse
     builddeps:
       <<: *build_deps
+    pre-cache-copy-paths:
+      - cf-build/llvm_mirror.txt
     pre-cache:
       # LLVM
-      - wget -nv -O /tmp/llvm-snapshot.gpg.key https://apt.llvm.org/llvm-snapshot.gpg.key
-      - echo "bda960a8da687a275a2078d43c111d66b1c6a893a3275271beedf266c1ff4a0cdecb429c7a5cccf9f486ea7aa43fd27f /tmp/llvm-snapshot.gpg.key" | sha384sum -c
-      - apt-key add --armor /tmp/llvm-snapshot.gpg.key
-      - echo "deb [trusted=yes] https://apt.llvm.org/buster/ llvm-toolchain-buster-11 main" >> /etc/apt/sources.list
+      - echo "deb [trusted=yes] mirror+file:/cfsetup_build/clickhouse/cf-build/llvm_mirror.txt llvm-toolchain-buster-11 main" >> /etc/apt/sources.list
       - apt-get update
       - apt-get install --yes --no-install-recommends clang-11 lld-11 llvm-11
     post-cache:
@@ -76,12 +75,11 @@ buster:
     build_dir: /cfsetup_build/clickhouse
     builddeps:
       <<: *build_deps
+    pre-cache-copy-paths:
+      - cf-build/llvm_mirror.txt
     pre-cache:
       # LLVM
-      - wget -nv -O /tmp/llvm-snapshot.gpg.key https://apt.llvm.org/llvm-snapshot.gpg.key
-      - echo "bda960a8da687a275a2078d43c111d66b1c6a893a3275271beedf266c1ff4a0cdecb429c7a5cccf9f486ea7aa43fd27f /tmp/llvm-snapshot.gpg.key" | sha384sum -c
-      - apt-key add --armor /tmp/llvm-snapshot.gpg.key
-      - echo "deb [trusted=yes] https://apt.llvm.org/buster/ llvm-toolchain-buster-11 main" >> /etc/apt/sources.list
+      - echo "deb [trusted=yes] mirror+file:/cfsetup_build/clickhouse/cf-build/llvm_mirror.txt llvm-toolchain-buster-11 main" >> /etc/apt/sources.list
       - apt-get update
       - apt-get install --yes --no-install-recommends clang-11 lld-11 llvm-11
     post-cache:
@@ -101,12 +99,11 @@ buster:
     build_dir: /cfsetup_build/clickhouse
     builddeps:
       <<: *build_deps
+    pre-cache-copy-paths:
+      - cf-build/llvm_mirror.txt
     pre-cache:
       # LLVM
-      - wget -nv -O /tmp/llvm-snapshot.gpg.key https://apt.llvm.org/llvm-snapshot.gpg.key
-      - echo "bda960a8da687a275a2078d43c111d66b1c6a893a3275271beedf266c1ff4a0cdecb429c7a5cccf9f486ea7aa43fd27f /tmp/llvm-snapshot.gpg.key" | sha384sum -c
-      - apt-key add --armor /tmp/llvm-snapshot.gpg.key
-      - echo "deb [trusted=yes] https://apt.llvm.org/buster/ llvm-toolchain-buster-11 main" >> /etc/apt/sources.list
+      - echo "deb [trusted=yes] mirror+file:/cfsetup_build/clickhouse/cf-build/llvm_mirror.txt llvm-toolchain-buster-11 main" >> /etc/apt/sources.list
       - apt-get update
       - apt-get install --yes --no-install-recommends clang-11 lld-11 llvm-11
     post-cache:
@@ -126,12 +123,11 @@ buster:
     build_dir: /cfsetup_build/clickhouse
     builddeps:
       <<: *build_deps
+    pre-cache-copy-paths:
+      - cf-build/llvm_mirror.txt
     pre-cache:
       # LLVM
-      - wget -nv -O /tmp/llvm-snapshot.gpg.key https://apt.llvm.org/llvm-snapshot.gpg.key
-      - echo "bda960a8da687a275a2078d43c111d66b1c6a893a3275271beedf266c1ff4a0cdecb429c7a5cccf9f486ea7aa43fd27f /tmp/llvm-snapshot.gpg.key" | sha384sum -c
-      - apt-key add --armor /tmp/llvm-snapshot.gpg.key
-      - echo "deb [trusted=yes] https://apt.llvm.org/buster/ llvm-toolchain-buster-11 main" >> /etc/apt/sources.list
+      - echo "deb [trusted=yes] mirror+file:/cfsetup_build/clickhouse/cf-build/llvm_mirror.txt llvm-toolchain-buster-11 main" >> /etc/apt/sources.list
       - apt-get update
       - apt-get install --yes --no-install-recommends clang-11 lld-11 llvm-11
     post-cache:
@@ -151,12 +147,11 @@ buster:
     build_dir: /cfsetup_build/clickhouse
     builddeps:
       <<: *build_deps
+    pre-cache-copy-paths:
+      - cf-build/llvm_mirror.txt
     pre-cache:
       # LLVM
-      - wget -nv -O /tmp/llvm-snapshot.gpg.key https://apt.llvm.org/llvm-snapshot.gpg.key
-      - echo "bda960a8da687a275a2078d43c111d66b1c6a893a3275271beedf266c1ff4a0cdecb429c7a5cccf9f486ea7aa43fd27f /tmp/llvm-snapshot.gpg.key" | sha384sum -c
-      - apt-key add --armor /tmp/llvm-snapshot.gpg.key
-      - echo "deb [trusted=yes] https://apt.llvm.org/buster/ llvm-toolchain-buster-11 main" >> /etc/apt/sources.list
+      - echo "deb [trusted=yes] mirror+file:/cfsetup_build/clickhouse/cf-build/llvm_mirror.txt llvm-toolchain-buster-11 main" >> /etc/apt/sources.list
       - apt-get update
       - apt-get install --yes --no-install-recommends clang-11 lld-11 llvm-11
     post-cache:
@@ -179,14 +174,13 @@ buster:
       - SYS_PTRACE # For LeakSanitizer (part of asan)
     builddeps:
       <<: *tests_deps
+    pre-cache-copy-paths:
+      - cf-build/llvm_mirror.txt
     pre-cache:
       # Additional test dependencies.
-      - pip3 install numpy scipy pandas
+      - pip3 install numpy scipy pandas==1.2
       # LLVM; want symbolizers for crashes
-      - wget -nv -O /tmp/llvm-snapshot.gpg.key https://apt.llvm.org/llvm-snapshot.gpg.key
-      - echo "bda960a8da687a275a2078d43c111d66b1c6a893a3275271beedf266c1ff4a0cdecb429c7a5cccf9f486ea7aa43fd27f /tmp/llvm-snapshot.gpg.key" | sha384sum -c
-      - apt-key add --armor /tmp/llvm-snapshot.gpg.key
-      - echo "deb [trusted=yes] https://apt.llvm.org/buster/ llvm-toolchain-buster-11 main" >> /etc/apt/sources.list
+      - echo "deb [trusted=yes] mirror+file:/cfsetup_build/clickhouse/cf-build/llvm_mirror.txt llvm-toolchain-buster-11 main" >> /etc/apt/sources.list
       - apt-get update
       - apt-get install --yes --no-install-recommends llvm-11
     post-cache:
@@ -203,14 +197,13 @@ buster:
     builddeps:
       <<: *build_deps
       <<: *tests_deps
+    pre-cache-copy-paths:
+      - cf-build/llvm_mirror.txt
     pre-cache:
       # Additional test dependencies.
-      - pip3 install numpy scipy pandas
+      - pip3 install numpy scipy pandas==1.2
       # LLVM
-      - wget -nv -O /tmp/llvm-snapshot.gpg.key https://apt.llvm.org/llvm-snapshot.gpg.key
-      - echo "bda960a8da687a275a2078d43c111d66b1c6a893a3275271beedf266c1ff4a0cdecb429c7a5cccf9f486ea7aa43fd27f /tmp/llvm-snapshot.gpg.key" | sha384sum -c
-      - apt-key add --armor /tmp/llvm-snapshot.gpg.key
-      - echo "deb [trusted=yes] https://apt.llvm.org/buster/ llvm-toolchain-buster-11 main" >> /etc/apt/sources.list
+      - echo "deb [trusted=yes] mirror+file:/cfsetup_build/clickhouse/cf-build/llvm_mirror.txt llvm-toolchain-buster-11 main" >> /etc/apt/sources.list
       - apt-get update
       - apt-get install --yes --no-install-recommends clang-11 lld-11 llvm-11
     post-cache:

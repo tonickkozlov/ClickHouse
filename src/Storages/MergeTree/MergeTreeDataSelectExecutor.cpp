@@ -178,7 +178,6 @@ QueryPlanPtr MergeTreeDataSelectExecutor::read(
     Pipe projection_pipe;
     Pipe ordinary_pipe;
 
-    const auto & given_select = query_info.query->as<const ASTSelectQuery &>();
     if (!projection_parts.empty())
     {
         LOG_DEBUG(log, "projection required columns: {}", fmt::join(query_info.projection->required_columns, ", "));
@@ -226,22 +225,28 @@ QueryPlanPtr MergeTreeDataSelectExecutor::read(
     if (!normal_parts.empty())
     {
         auto storage_from_base_parts_of_projection = StorageFromMergeTreeDataPart::create(std::move(normal_parts));
-        auto ast = query_info.projection->desc->query_ast->clone();
-        auto & select = ast->as<ASTSelectQuery &>();
-        if (given_select.where())
-            select.setExpression(ASTSelectQuery::Expression::WHERE, given_select.where()->clone());
-        if (given_select.prewhere())
-            select.setExpression(ASTSelectQuery::Expression::WHERE, given_select.prewhere()->clone());
-
-        // After overriding the group by clause, we finish the possible aggregations directly
-        if (processed_stage >= QueryProcessingStage::Enum::WithMergeableState && given_select.groupBy())
-            select.setExpression(ASTSelectQuery::Expression::GROUP_BY, given_select.groupBy()->clone());
         auto interpreter = InterpreterSelectQuery(
-            ast,
+            query_info.query,
             context,
             storage_from_base_parts_of_projection,
             nullptr,
-            SelectQueryOptions{processed_stage}.ignoreAggregation().ignoreProjections());
+            SelectQueryOptions{processed_stage}.projectionQuery());
+
+        QueryPlan ordinary_query_plan;
+        interpreter.buildQueryPlan(ordinary_query_plan);
+
+        const auto & expressions = interpreter.getAnalysisResult();
+        if (processed_stage == QueryProcessingStage::Enum::FetchColumns && expressions.before_where)
+        {
+            auto where_step = std::make_unique<FilterStep>(
+                ordinary_query_plan.getCurrentDataStream(),
+                expressions.before_where,
+                expressions.where_column_name,
+                expressions.remove_where_filter);
+            where_step->setStepDescription("WHERE");
+            ordinary_query_plan.addStep(std::move(where_step));
+        }
+
         ordinary_pipe = QueryPipeline::getPipe(interpreter.execute().pipeline);
     }
 
@@ -356,10 +361,11 @@ QueryPlanPtr MergeTreeDataSelectExecutor::read(
     pipes.emplace_back(std::move(projection_pipe));
     pipes.emplace_back(std::move(ordinary_pipe));
     auto pipe = Pipe::unitePipes(std::move(pipes));
-    // TODO what if pipe is empty?
     pipe.resize(1);
 
-    auto step = std::make_unique<ReadFromStorageStep>(std::move(pipe), "MergeTree(with projection)");
+    auto step = std::make_unique<ReadFromStorageStep>(
+        std::move(pipe),
+        fmt::format("MergeTree(with {} projection {})", query_info.projection->desc->type, query_info.projection->desc->name));
     auto plan = std::make_unique<QueryPlan>();
     plan->addStep(std::move(step));
     return plan;
@@ -757,7 +763,8 @@ RangesInDataParts MergeTreeDataSelectExecutor::filterPartsByPrimaryKeyAndSkipInd
     Poco::Logger * log,
     size_t num_streams,
     ReadFromMergeTree::IndexStats & index_stats,
-    bool use_skip_indexes)
+    bool use_skip_indexes,
+    bool check_limits)
 {
     RangesInDataParts parts_with_ranges(parts.size());
     const Settings & settings = context->getSettingsRef();
@@ -885,7 +892,7 @@ RangesInDataParts MergeTreeDataSelectExecutor::filterPartsByPrimaryKeyAndSkipInd
 
             if (!ranges.ranges.empty())
             {
-                if (limits.max_rows || leaf_limits.max_rows)
+                if (check_limits && (limits.max_rows || leaf_limits.max_rows))
                 {
                     /// Fail fast if estimated number of rows to read exceeds the limit
                     auto current_rows_estimate = ranges.getRowsCount();
@@ -1150,7 +1157,8 @@ size_t MergeTreeDataSelectExecutor::estimateNumMarksToRead(
         log,
         num_streams,
         index_stats,
-        false);
+        true /* use_skip_indexes */,
+        false /* check_limits */);
 
     return index_stats.back().num_granules_after;
 }
@@ -1290,6 +1298,9 @@ MarkRanges MergeTreeDataSelectExecutor::markRangesFromPKRange(
         create_field_ref = [index_columns](size_t row, size_t column, FieldRef & field)
         {
             field = {index_columns.get(), row, column};
+            // NULL_LAST
+            if (field.isNull())
+                field = PositiveInfinity{};
         };
     }
     else
@@ -1297,6 +1308,9 @@ MarkRanges MergeTreeDataSelectExecutor::markRangesFromPKRange(
         create_field_ref = [&index](size_t row, size_t column, FieldRef & field)
         {
             index[column]->get(row, field);
+            // NULL_LAST
+            if (field.isNull())
+                field = PositiveInfinity{};
         };
     }
 
@@ -1309,21 +1323,22 @@ MarkRanges MergeTreeDataSelectExecutor::markRangesFromPKRange(
         if (range.end == marks_count && !has_final_mark)
         {
             for (size_t i = 0; i < used_key_size; ++i)
+            {
                 create_field_ref(range.begin, i, index_left[i]);
-
-            return key_condition.mayBeTrueAfter(
-                used_key_size, index_left.data(), primary_key.data_types);
+                index_right[i] = PositiveInfinity{};
+            }
         }
-
-        if (has_final_mark && range.end == marks_count)
-            range.end -= 1; /// Remove final empty mark. It's useful only for primary key condition.
-
-        for (size_t i = 0; i < used_key_size; ++i)
+        else
         {
-            create_field_ref(range.begin, i, index_left[i]);
-            create_field_ref(range.end, i, index_right[i]);
-        }
+            if (has_final_mark && range.end == marks_count)
+                range.end -= 1; /// Remove final empty mark. It's useful only for primary key condition.
 
+            for (size_t i = 0; i < used_key_size; ++i)
+            {
+                create_field_ref(range.begin, i, index_left[i]);
+                create_field_ref(range.end, i, index_right[i]);
+            }
+        }
         return key_condition.mayBeTrueInRange(
             used_key_size, index_left.data(), index_right.data(), primary_key.data_types);
     };
@@ -1443,9 +1458,10 @@ MarkRanges MergeTreeDataSelectExecutor::filterMarksUsingIndex(
     size_t & granules_dropped,
     Poco::Logger * log)
 {
-    if (!part->volume->getDisk()->exists(part->getFullRelativePath() + index_helper->getFileName() + ".idx"))
+    const std::string & path_prefix = part->getFullRelativePath() + index_helper->getFileName();
+    if (!index_helper->getDeserializedFormat(part->volume->getDisk(), path_prefix))
     {
-        LOG_DEBUG(log, "File for index {} does not exist. Skipping it.", backQuote(index_helper->index.name));
+        LOG_DEBUG(log, "File for index {} does not exist ({}.*). Skipping it.", backQuote(index_helper->index.name), path_prefix);
         return ranges;
     }
 

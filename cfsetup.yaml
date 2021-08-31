@@ -24,6 +24,7 @@ tests_deps: &tests_deps
   # clickhouse-test requirements
   ? brotli
   ? expect
+  ? golang
   ? lsof
   ? moreutils # for ts command
   ? netcat-openbsd

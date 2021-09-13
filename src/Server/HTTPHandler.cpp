@@ -295,8 +295,10 @@ bool HTTPHandler::authenticateUser(
         if (request.hasCredentials())
         {
             /// It is prohibited to mix different authorization schemes.
-            if (params.has("user") || params.has("password"))
-                throw Exception("Invalid authentication: it is not allowed to use Authorization HTTP header and authentication via parameters simultaneously", ErrorCodes::AUTHENTICATION_FAILED);
+            /// Cloudflare: Relax this constraint as it was in previous v20.8 release.
+            /// We still run some legacy software which is hard to update.
+            // if (params.has("user") || params.has("password"))
+            //     throw Exception("Invalid authentication: it is not allowed to use Authorization HTTP header and authentication via parameters simultaneously", ErrorCodes::AUTHENTICATION_FAILED);
 
             std::string scheme;
             std::string auth_info;

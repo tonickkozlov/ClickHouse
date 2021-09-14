@@ -163,7 +163,6 @@ function run_cmake
     if [[ -n "$CCACHE_ACCESS_KEY" ]]; then
       mkdir -p "$HOME/.ccache"
       export CCACHE_DIR="$HOME/.ccache"
-      export CCACHE_MAXSIZE=10G
 
       export S3_CCACHE_KEY_SUFFIX="fasttest"
       mkdir -p $HOME/.aws

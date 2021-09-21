@@ -91,6 +91,8 @@ function run_tests()
 
     # depends on Yandex internal infrastructure
     ADDITIONAL_OPTIONS+=('01801_s3_cluster')
+    ADDITIONAL_OPTIONS+=('02012_settings_clause_for_s3')
+    ADDITIONAL_OPTIONS+=('01944_insert_partition_by')
 
     # No ipv6 in Docker on the metal CI agents.
     ADDITIONAL_OPTIONS+=('01293_show_clusters')

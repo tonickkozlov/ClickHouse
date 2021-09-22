@@ -74,6 +74,7 @@ function run_tests()
     ADDITIONAL_OPTIONS+=('_orc')
     ADDITIONAL_OPTIONS+=('_parquet')
     ADDITIONAL_OPTIONS+=('_protobuf')
+    ADDITIONAL_OPTIONS+=('_sqlite')
 
     # Cloudflare CI fails localhost resolution
     ADDITIONAL_OPTIONS+=('00646_url_engine')

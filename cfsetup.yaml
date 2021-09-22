@@ -23,6 +23,7 @@ build_deps: &build_deps
 tests_deps: &tests_deps
   # clickhouse-test requirements
   ? brotli
+  ? bzip2
   ? expect
   ? golang
   ? lsof

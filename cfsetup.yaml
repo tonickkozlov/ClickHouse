@@ -59,14 +59,14 @@ buster:
       - cf-build/llvm_mirror.txt
     pre-cache:
       # LLVM
-      - echo "deb [trusted=yes] mirror+file:/cfsetup_build/clickhouse/cf-build/llvm_mirror.txt llvm-toolchain-buster-11 main" >> /etc/apt/sources.list
+      - echo "deb [trusted=yes] mirror+file:/cfsetup_build/clickhouse/cf-build/llvm_mirror.txt llvm-toolchain-buster-12 main" >> /etc/apt/sources.list
       - apt-get update
-      - apt-get install --yes --no-install-recommends clang-11 lld-11 llvm-11
+      - apt-get install --yes --no-install-recommends clang-12 lld-12 llvm-12
     post-cache:
       - sudo chown -R $(id -u):$(id -g) ..
       # Configure this build
-      - export DEB_CC=clang-11
-      - export DEB_CXX=clang++-11
+      - export DEB_CC=clang-12
+      - export DEB_CXX=clang++-12
       # Action
       - ./cf-build/release.sh
     artifacts:
@@ -81,16 +81,16 @@ buster:
       - cf-build/llvm_mirror.txt
     pre-cache:
       # LLVM
-      - echo "deb [trusted=yes] mirror+file:/cfsetup_build/clickhouse/cf-build/llvm_mirror.txt llvm-toolchain-buster-11 main" >> /etc/apt/sources.list
+      - echo "deb [trusted=yes] mirror+file:/cfsetup_build/clickhouse/cf-build/llvm_mirror.txt llvm-toolchain-buster-12 main" >> /etc/apt/sources.list
       - apt-get update
-      - apt-get install --yes --no-install-recommends clang-11 lld-11 llvm-11
+      - apt-get install --yes --no-install-recommends clang-12 lld-12 llvm-12
     post-cache:
       - sudo chown -R $(id -u):$(id -g) ..
       # Configure this build
       - export S3_CCACHE_KEY_SUFFIX=asan
       - export SANITIZER=address
-      - export DEB_CC=clang-11
-      - export DEB_CXX=clang++-11
+      - export DEB_CC=clang-12
+      - export DEB_CXX=clang++-12
       # Action
       - ./cf-build/release.sh
     artifacts:
@@ -105,16 +105,16 @@ buster:
       - cf-build/llvm_mirror.txt
     pre-cache:
       # LLVM
-      - echo "deb [trusted=yes] mirror+file:/cfsetup_build/clickhouse/cf-build/llvm_mirror.txt llvm-toolchain-buster-11 main" >> /etc/apt/sources.list
+      - echo "deb [trusted=yes] mirror+file:/cfsetup_build/clickhouse/cf-build/llvm_mirror.txt llvm-toolchain-buster-12 main" >> /etc/apt/sources.list
       - apt-get update
-      - apt-get install --yes --no-install-recommends clang-11 lld-11 llvm-11
+      - apt-get install --yes --no-install-recommends clang-12 lld-12 llvm-12
     post-cache:
       - sudo chown -R $(id -u):$(id -g) ..
       # Configure this build
       - export S3_CCACHE_KEY_SUFFIX=tsan
       - export SANITIZER=thread
-      - export DEB_CC=clang-11
-      - export DEB_CXX=clang++-11
+      - export DEB_CC=clang-12
+      - export DEB_CXX=clang++-12
       # Action
       - ./cf-build/release.sh
     artifacts:
@@ -129,16 +129,16 @@ buster:
       - cf-build/llvm_mirror.txt
     pre-cache:
       # LLVM
-      - echo "deb [trusted=yes] mirror+file:/cfsetup_build/clickhouse/cf-build/llvm_mirror.txt llvm-toolchain-buster-11 main" >> /etc/apt/sources.list
+      - echo "deb [trusted=yes] mirror+file:/cfsetup_build/clickhouse/cf-build/llvm_mirror.txt llvm-toolchain-buster-12 main" >> /etc/apt/sources.list
       - apt-get update
-      - apt-get install --yes --no-install-recommends clang-11 lld-11 llvm-11
+      - apt-get install --yes --no-install-recommends clang-12 lld-12 llvm-12
     post-cache:
       - sudo chown -R $(id -u):$(id -g) ..
       # Configure this build
       - export S3_CCACHE_KEY_SUFFIX=msan
       - export SANITIZER=memory
-      - export DEB_CC=clang-11
-      - export DEB_CXX=clang++-11
+      - export DEB_CC=clang-12
+      - export DEB_CXX=clang++-12
       # Action
       - ./cf-build/release.sh
     artifacts:
@@ -153,16 +153,16 @@ buster:
       - cf-build/llvm_mirror.txt
     pre-cache:
       # LLVM
-      - echo "deb [trusted=yes] mirror+file:/cfsetup_build/clickhouse/cf-build/llvm_mirror.txt llvm-toolchain-buster-11 main" >> /etc/apt/sources.list
+      - echo "deb [trusted=yes] mirror+file:/cfsetup_build/clickhouse/cf-build/llvm_mirror.txt llvm-toolchain-buster-12 main" >> /etc/apt/sources.list
       - apt-get update
-      - apt-get install --yes --no-install-recommends clang-11 lld-11 llvm-11
+      - apt-get install --yes --no-install-recommends clang-12 lld-12 llvm-12
     post-cache:
       - sudo chown -R $(id -u):$(id -g) ..
       # Configure this build
       - export S3_CCACHE_KEY_SUFFIX=ubsan
       - export SANITIZER=undefined
-      - export DEB_CC=clang-11
-      - export DEB_CXX=clang++-11
+      - export DEB_CC=clang-12
+      - export DEB_CXX=clang++-12
       # Action
       - ./cf-build/release.sh
     artifacts:
@@ -182,9 +182,9 @@ buster:
       # Additional test dependencies.
       - pip3 install numpy scipy pandas==1.2
       # LLVM; want symbolizers for crashes
-      - echo "deb [trusted=yes] mirror+file:/cfsetup_build/clickhouse/cf-build/llvm_mirror.txt llvm-toolchain-buster-11 main" >> /etc/apt/sources.list
+      - echo "deb [trusted=yes] mirror+file:/cfsetup_build/clickhouse/cf-build/llvm_mirror.txt llvm-toolchain-buster-12 main" >> /etc/apt/sources.list
       - apt-get update
-      - apt-get install --yes --no-install-recommends llvm-11
+      - apt-get install --yes --no-install-recommends llvm-12
     post-cache:
       # Functional tests by default expect Moscow timezone
       - export TZ=Europe/Moscow
@@ -205,10 +205,11 @@ buster:
       # Additional test dependencies.
       - pip3 install numpy scipy pandas==1.2
       # LLVM
-      - echo "deb [trusted=yes] mirror+file:/cfsetup_build/clickhouse/cf-build/llvm_mirror.txt llvm-toolchain-buster-11 main" >> /etc/apt/sources.list
+      - echo "deb [trusted=yes] mirror+file:/cfsetup_build/clickhouse/cf-build/llvm_mirror.txt llvm-toolchain-buster-12 main" >> /etc/apt/sources.list
       - apt-get update
-      - apt-get install --yes --no-install-recommends clang-11 lld-11 llvm-11
+      - apt-get install --yes --no-install-recommends clang-12 lld-12 llvm-12
     post-cache:
+      - export LLVM_VERSION=12
       # Functional tests by default expect Moscow timezone
       - export TZ=Europe/Moscow
       - sudo ln -snf /usr/share/zoneinfo/$TZ /etc/localtime

@@ -7,7 +7,7 @@ RUN apt-get update && apt-get install --yes wget gnupg && \
     wget -nv -O /tmp/llvm-snapshot.gpg.key https://apt.llvm.org/llvm-snapshot.gpg.key && \
     echo "bda960a8da687a275a2078d43c111d66b1c6a893a3275271beedf266c1ff4a0cdecb429c7a5cccf9f486ea7aa43fd27f /tmp/llvm-snapshot.gpg.key" | sha384sum -c && \
     apt-key add --armor /tmp/llvm-snapshot.gpg.key && \
-    echo "deb [trusted=yes] https://apt.llvm.org/buster/ llvm-toolchain-buster-11 main" >> /etc/apt/sources.list && \
+    echo "deb [trusted=yes] https://apt.llvm.org/buster/ llvm-toolchain-buster-12 main" >> /etc/apt/sources.list && \
     apt-get update && \
     apt-get install --yes --no-install-recommends \
         llvm-$LLVM_VERSION \

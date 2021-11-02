@@ -3,6 +3,14 @@
 # Adapted from docker/test/stateless
 set -e -x -o pipefail
 
+# Hardcode localhost hostname, test results depend on it.
+hostname localhost
+
+# Choose random timezone for this test run.
+TZ="$(grep -v '#' /usr/share/zoneinfo/zone.tab  | awk '{print $3}' | shuf | head -n1)"
+echo "Choosen random timezone $TZ"
+ln -snf "/usr/share/zoneinfo/$TZ" /etc/localtime && echo "$TZ" > /etc/timezone
+
 export DEBIAN_FRONTEND=noninteractive
 dpkg -i artifacts-in/clickhouse-common-static_*.deb
 dpkg -i artifacts-in/clickhouse-common-static-dbg_*.deb
@@ -76,8 +84,12 @@ function run_tests()
     ADDITIONAL_OPTIONS+=('_protobuf')
     ADDITIONAL_OPTIONS+=('_sqlite')
 
+    # Depends on mysql table function which we don't build.
+    ADDITIONAL_OPTIONS+=('01747_system_session_log_long')
+
     # Cloudflare CI fails localhost resolution
     ADDITIONAL_OPTIONS+=('00646_url_engine')
+    ADDITIONAL_OPTIONS+=('01622_defaults_for_url_engine')
     ADDITIONAL_OPTIONS+=('01854_HTTP_dict_decompression')
     ADDITIONAL_OPTIONS+=('01720_dictionary_create_source_with_functions')
     ADDITIONAL_OPTIONS+=('01501_cache_dictionary_all_fields')
@@ -102,10 +114,12 @@ function run_tests()
     ADDITIONAL_OPTIONS+=('01606_git_import')
     # End tests to skip.
 
-    clickhouse-test --testname --shard --zookeeper --hung-check --print-time \
-            --use-skip-list "${ADDITIONAL_OPTIONS[@]}" 2>&1 \
+    set +e
+    clickhouse-test --testname --shard --zookeeper --check-zookeeper-session --hung-check --print-time \
+            "${ADDITIONAL_OPTIONS[@]}" 2>&1 \
         | ts '%Y-%m-%d %H:%M:%S' \
         | tee -a test_output/test_result.txt
+    set -e
 }
 
 run_tests

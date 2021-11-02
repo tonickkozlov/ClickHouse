@@ -24,6 +24,7 @@ tests_deps: &tests_deps
   ? gdb
   # clickhouse-test requirements
   ? brotli
+  ? bsdmainutils # hexdump
   ? bzip2
   ? expect
   ? golang

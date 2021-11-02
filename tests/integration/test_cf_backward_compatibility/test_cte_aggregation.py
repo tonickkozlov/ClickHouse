@@ -17,6 +17,7 @@ def start_cluster():
         cluster.shutdown()
 
 
+@pytest.mark.skip("https://jira.cfops.it/browse/CLICKHOUSE-1446")
 def test_cte_aggregation(start_cluster):
     queries = [
         """

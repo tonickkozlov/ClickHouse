@@ -1,7 +1,7 @@
 # Do not want to allow access to Cloudflare registry from the DinD.
 FROM debian:buster
 
-ENV DEBIAN_FRONTEND=noninteractive LLVM_VERSION=11
+ENV DEBIAN_FRONTEND=noninteractive LLVM_VERSION=12
 
 RUN apt-get update && apt-get install --yes wget gnupg && \
     wget -nv -O /tmp/llvm-snapshot.gpg.key https://apt.llvm.org/llvm-snapshot.gpg.key && \

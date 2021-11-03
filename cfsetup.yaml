@@ -21,9 +21,13 @@ build_deps: &build_deps
   ? wget
 
 tests_deps: &tests_deps
+  ? gdb
   # clickhouse-test requirements
   ? brotli
+  ? bsdmainutils # hexdump
+  ? bzip2
   ? expect
+  ? golang
   ? lsof
   ? moreutils # for ts command
   ? netcat-openbsd
@@ -57,14 +61,14 @@ buster:
       - cf-build/llvm_mirror.txt
     pre-cache:
       # LLVM
-      - echo "deb [trusted=yes] mirror+file:/cfsetup_build/clickhouse/cf-build/llvm_mirror.txt llvm-toolchain-buster-11 main" >> /etc/apt/sources.list
+      - echo "deb [trusted=yes] mirror+file:/cfsetup_build/clickhouse/cf-build/llvm_mirror.txt llvm-toolchain-buster-12 main" >> /etc/apt/sources.list
       - apt-get update
-      - apt-get install --yes --no-install-recommends clang-11 lld-11 llvm-11
+      - apt-get install --yes --no-install-recommends clang-12 lld-12 llvm-12
     post-cache:
       - sudo chown -R $(id -u):$(id -g) ..
       # Configure this build
-      - export DEB_CC=clang-11
-      - export DEB_CXX=clang++-11
+      - export DEB_CC=clang-12
+      - export DEB_CXX=clang++-12
       # Action
       - ./cf-build/release.sh
     artifacts:
@@ -79,16 +83,16 @@ buster:
       - cf-build/llvm_mirror.txt
     pre-cache:
       # LLVM
-      - echo "deb [trusted=yes] mirror+file:/cfsetup_build/clickhouse/cf-build/llvm_mirror.txt llvm-toolchain-buster-11 main" >> /etc/apt/sources.list
+      - echo "deb [trusted=yes] mirror+file:/cfsetup_build/clickhouse/cf-build/llvm_mirror.txt llvm-toolchain-buster-12 main" >> /etc/apt/sources.list
       - apt-get update
-      - apt-get install --yes --no-install-recommends clang-11 lld-11 llvm-11
+      - apt-get install --yes --no-install-recommends clang-12 lld-12 llvm-12
     post-cache:
       - sudo chown -R $(id -u):$(id -g) ..
       # Configure this build
       - export S3_CCACHE_KEY_SUFFIX=asan
       - export SANITIZER=address
-      - export DEB_CC=clang-11
-      - export DEB_CXX=clang++-11
+      - export DEB_CC=clang-12
+      - export DEB_CXX=clang++-12
       # Action
       - ./cf-build/release.sh
     artifacts:
@@ -103,16 +107,16 @@ buster:
       - cf-build/llvm_mirror.txt
     pre-cache:
       # LLVM
-      - echo "deb [trusted=yes] mirror+file:/cfsetup_build/clickhouse/cf-build/llvm_mirror.txt llvm-toolchain-buster-11 main" >> /etc/apt/sources.list
+      - echo "deb [trusted=yes] mirror+file:/cfsetup_build/clickhouse/cf-build/llvm_mirror.txt llvm-toolchain-buster-12 main" >> /etc/apt/sources.list
       - apt-get update
-      - apt-get install --yes --no-install-recommends clang-11 lld-11 llvm-11
+      - apt-get install --yes --no-install-recommends clang-12 lld-12 llvm-12
     post-cache:
       - sudo chown -R $(id -u):$(id -g) ..
       # Configure this build
       - export S3_CCACHE_KEY_SUFFIX=tsan
       - export SANITIZER=thread
-      - export DEB_CC=clang-11
-      - export DEB_CXX=clang++-11
+      - export DEB_CC=clang-12
+      - export DEB_CXX=clang++-12
       # Action
       - ./cf-build/release.sh
     artifacts:
@@ -127,16 +131,16 @@ buster:
       - cf-build/llvm_mirror.txt
     pre-cache:
       # LLVM
-      - echo "deb [trusted=yes] mirror+file:/cfsetup_build/clickhouse/cf-build/llvm_mirror.txt llvm-toolchain-buster-11 main" >> /etc/apt/sources.list
+      - echo "deb [trusted=yes] mirror+file:/cfsetup_build/clickhouse/cf-build/llvm_mirror.txt llvm-toolchain-buster-12 main" >> /etc/apt/sources.list
       - apt-get update
-      - apt-get install --yes --no-install-recommends clang-11 lld-11 llvm-11
+      - apt-get install --yes --no-install-recommends clang-12 lld-12 llvm-12
     post-cache:
       - sudo chown -R $(id -u):$(id -g) ..
       # Configure this build
       - export S3_CCACHE_KEY_SUFFIX=msan
       - export SANITIZER=memory
-      - export DEB_CC=clang-11
-      - export DEB_CXX=clang++-11
+      - export DEB_CC=clang-12
+      - export DEB_CXX=clang++-12
       # Action
       - ./cf-build/release.sh
     artifacts:
@@ -151,16 +155,16 @@ buster:
       - cf-build/llvm_mirror.txt
     pre-cache:
       # LLVM
-      - echo "deb [trusted=yes] mirror+file:/cfsetup_build/clickhouse/cf-build/llvm_mirror.txt llvm-toolchain-buster-11 main" >> /etc/apt/sources.list
+      - echo "deb [trusted=yes] mirror+file:/cfsetup_build/clickhouse/cf-build/llvm_mirror.txt llvm-toolchain-buster-12 main" >> /etc/apt/sources.list
       - apt-get update
-      - apt-get install --yes --no-install-recommends clang-11 lld-11 llvm-11
+      - apt-get install --yes --no-install-recommends clang-12 lld-12 llvm-12
     post-cache:
       - sudo chown -R $(id -u):$(id -g) ..
       # Configure this build
       - export S3_CCACHE_KEY_SUFFIX=ubsan
       - export SANITIZER=undefined
-      - export DEB_CC=clang-11
-      - export DEB_CXX=clang++-11
+      - export DEB_CC=clang-12
+      - export DEB_CXX=clang++-12
       # Action
       - ./cf-build/release.sh
     artifacts:
@@ -171,29 +175,28 @@ buster:
     build_dir: /cfsetup_build/clickhouse
     nosubmodule: true
     cap_add:
-      - SYS_PTRACE # For LeakSanitizer (part of asan)
+      - SYS_PTRACE # LeakSanitizer (part of asan), gdb
     builddeps:
       <<: *tests_deps
     pre-cache-copy-paths:
       - cf-build/llvm_mirror.txt
     pre-cache:
       # Additional test dependencies.
-      - pip3 install numpy scipy pandas==1.2
+      # Newer version of pandas require python3-dev, is rebuilt on each run and takes ages.
+      - pip3 install numpy scipy pandas==1.2 Jinja2
       # LLVM; want symbolizers for crashes
-      - echo "deb [trusted=yes] mirror+file:/cfsetup_build/clickhouse/cf-build/llvm_mirror.txt llvm-toolchain-buster-11 main" >> /etc/apt/sources.list
+      - echo "deb [trusted=yes] mirror+file:/cfsetup_build/clickhouse/cf-build/llvm_mirror.txt llvm-toolchain-buster-12 main" >> /etc/apt/sources.list
       - apt-get update
-      - apt-get install --yes --no-install-recommends llvm-11
+      - apt-get install --yes --no-install-recommends llvm-12
     post-cache:
-      # Functional tests by default expect Moscow timezone
-      - export TZ=Europe/Moscow
-      - sudo ln -snf /usr/share/zoneinfo/$TZ /etc/localtime
-      - echo $TZ | sudo tee /etc/timezone
       # Action
       - sudo -E ./cf-build/tests/stateless.sh
 
   # cfsetup build -f buster -yt fasttest
   fasttest:
     build_dir: /cfsetup_build/clickhouse
+    cap_add:
+      - SYS_PTRACE # gdb
     builddeps:
       <<: *build_deps
       <<: *tests_deps
@@ -201,16 +204,14 @@ buster:
       - cf-build/llvm_mirror.txt
     pre-cache:
       # Additional test dependencies.
-      - pip3 install numpy scipy pandas==1.2
+      # Newer version of pandas require python3-dev, is rebuilt on each run and takes ages.
+      - pip3 install numpy scipy pandas==1.2 Jinja2
       # LLVM
-      - echo "deb [trusted=yes] mirror+file:/cfsetup_build/clickhouse/cf-build/llvm_mirror.txt llvm-toolchain-buster-11 main" >> /etc/apt/sources.list
+      - echo "deb [trusted=yes] mirror+file:/cfsetup_build/clickhouse/cf-build/llvm_mirror.txt llvm-toolchain-buster-12 main" >> /etc/apt/sources.list
       - apt-get update
-      - apt-get install --yes --no-install-recommends clang-11 lld-11 llvm-11
+      - apt-get install --yes --no-install-recommends clang-12 lld-12 llvm-12
     post-cache:
-      # Functional tests by default expect Moscow timezone
-      - export TZ=Europe/Moscow
-      - sudo ln -snf /usr/share/zoneinfo/$TZ /etc/localtime
-      - echo $TZ | sudo tee /etc/timezone
+      - export LLVM_VERSION=12
       # Prep
       - sudo mkdir -p /var/lib/clickhouse /var/log/clickhouse-server
       - sudo chown -R $(id -u):$(id -g) /var/lib/clickhouse /var/log/clickhouse-server

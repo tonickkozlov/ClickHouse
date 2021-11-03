@@ -44,10 +44,10 @@ done
 set -e
 
 # "shell" container that is used to run clickhouse servers w/ the binary mounted.
-docker build -t yandex/clickhouse-integration-test ./cf-build/tests/integration/shell
+docker build -t clickhouse/integration-test ./cf-build/tests/integration/shell
 
 # Just use the same image. We pre-installed iptables.
-docker tag yandex/clickhouse-integration-test yandex/clickhouse-integration-helper
+docker tag clickhouse/integration-test clickhouse/integration-helper
 
 # Drop extra capabilities which were added when the package was built.
 # We don't need them for tests.
@@ -69,22 +69,30 @@ trap collect_logs ERR EXIT
 PYTEST_EXTRA_ARGS=${PYTEST_EXTRA_ARGS:-""}
 
 read -ra PYTEST_EXTRA_ARGS <<< "${PYTEST_EXTRA_ARGS:-}"
-read -ra TESTS_TO_RUN <<< "${TESTS_TO_RUN:-}"
+read -ra TESTS_TO_RUN <<< "${TESTS_TO_RUN:-}";
 
+cd /clickhouse/tests/integration
+
+  set +x # too verbose
 if [[ ${#TESTS_TO_RUN[@]} -eq 0 ]]; then
   TESTS_TO_RUN=(
     # Cloudflare tests:
-    test_alter_to_stuck
+    test_cf_*
+    test_backward_compatibility
 
     # Upstream tests:
+    test_aggregation_memory_efficient
     test_alter_codec
     test_attach_without_checksums
     test_attach_without_fetching
     test_authentication
+    test_block_structure_mismatch
     test_broken_part_during_merge
+    test_check_table
     test_cleanup_dir_after_bad_zk_conn
     test_cluster_all_replicas
     test_compression_codec_read
+    test_compression_nested_columns
     test_concurrent_queries_for_all_users_restriction
     test_concurrent_queries_for_user_restriction
     test_config_corresponding_root
@@ -97,6 +105,10 @@ if [[ ${#TESTS_TO_RUN[@]} -eq 0 ]]; then
     test_cross_replication
     test_default_compression_codec
     test_delayed_replica_failover
+    test_dictionaries_update_and_reload
+    test_dictionary_allow_read_expired_keys
+    test_dictionary_custom_settings
+    test_distributed_queries_stress
     test_drop_replica
     test_http_and_readonly
     test_https_replication
@@ -113,6 +125,7 @@ if [[ ${#TESTS_TO_RUN[@]} -eq 0 ]]; then
     test_recovery_replica
     test_reload_clusters_config
     test_reload_zookeeper
+    test_reloading_settings_from_users_xml
     test_replace_partition
     test_replicated_mutations
     test_replicated_parse_zk_metadata
@@ -126,11 +139,11 @@ if [[ ${#TESTS_TO_RUN[@]} -eq 0 ]]; then
     test_user_ip_restrictions
     test_version_update_after_mutation
     test_zookeeper_config
+    test_lost_part_during_startup
   )
 fi
+set -x
 
 # Action!
-cd /clickhouse/tests/integration
-
 # shellcheck disable=SC2068
 pytest ${TESTS_TO_RUN[@]} ${PYTEST_EXTRA_ARGS[@]} | tee /clickhouse/artifacts/test_result.txt

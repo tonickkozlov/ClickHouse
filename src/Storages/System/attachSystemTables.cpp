@@ -1,3 +1,5 @@
+#include "config_core.h"
+
 #include <Databases/IDatabase.h>
 #include <Storages/System/attachSystemTables.h>
 #include <Storages/System/attachSystemTablesImpl.h>
@@ -17,7 +19,6 @@
 #include <Storages/System/StorageSystemFormats.h>
 #include <Storages/System/StorageSystemFunctions.h>
 #include <Storages/System/StorageSystemGraphite.h>
-
 #include <Storages/System/StorageSystemMacros.h>
 #include <Storages/System/StorageSystemMerges.h>
 #include <Storages/System/StorageSystemReplicatedFetches.h>
@@ -43,16 +44,13 @@
 #include <Storages/System/StorageSystemZooKeeper.h>
 #include <Storages/System/StorageSystemContributors.h>
 #include <Storages/System/StorageSystemErrors.h>
+#include <Storages/System/StorageSystemWarnings.h>
 #include <Storages/System/StorageSystemDDLWorkerQueue.h>
-
-#if !defined(ARCADIA_BUILD)
-    #include <Storages/System/StorageSystemLicenses.h>
-    #include <Storages/System/StorageSystemTimeZones.h>
-#endif
+#include <Storages/System/StorageSystemLicenses.h>
+#include <Storages/System/StorageSystemTimeZones.h>
 #include <Storages/System/StorageSystemDisks.h>
 #include <Storages/System/StorageSystemStoragePolicies.h>
 #include <Storages/System/StorageSystemZeros.h>
-
 #include <Storages/System/StorageSystemUsers.h>
 #include <Storages/System/StorageSystemRoles.h>
 #include <Storages/System/StorageSystemGrants.h>
@@ -68,9 +66,14 @@
 #include <Storages/System/StorageSystemQuotasUsage.h>
 #include <Storages/System/StorageSystemUserDirectories.h>
 #include <Storages/System/StorageSystemPrivileges.h>
+#include <Storages/System/StorageSystemAsynchronousInserts.h>
 
 #ifdef OS_LINUX
 #include <Storages/System/StorageSystemStackTrace.h>
+#endif
+
+#if USE_ROCKSDB
+#include <Storages/RocksDB/StorageSystemRocksDB.h>
 #endif
 
 
@@ -116,13 +119,15 @@ void attachSystemTablesLocal(IDatabase & system_database)
     attach<StorageSystemUserDirectories>(system_database, "user_directories");
     attach<StorageSystemPrivileges>(system_database, "privileges");
     attach<StorageSystemErrors>(system_database, "errors");
+    attach<StorageSystemWarnings>(system_database, "warnings");
     attach<StorageSystemDataSkippingIndices>(system_database, "data_skipping_indices");
-#if !defined(ARCADIA_BUILD)
     attach<StorageSystemLicenses>(system_database, "licenses");
     attach<StorageSystemTimeZones>(system_database, "time_zones");
-#endif
 #ifdef OS_LINUX
     attach<StorageSystemStackTrace>(system_database, "stack_trace");
+#endif
+#if USE_ROCKSDB
+    attach<StorageSystemRocksDB>(system_database, "rocksdb");
 #endif
 }
 
@@ -152,6 +157,7 @@ void attachSystemTablesServer(IDatabase & system_database, bool has_zookeeper)
     attach<StorageSystemMacros>(system_database, "macros");
     attach<StorageSystemReplicatedFetches>(system_database, "replicated_fetches");
     attach<StorageSystemPartMovesBetweenShards>(system_database, "part_moves_between_shards");
+    attach<StorageSystemAsynchronousInserts>(system_database, "asynchronous_inserts");
 
     if (has_zookeeper)
         attach<StorageSystemZooKeeper>(system_database, "zookeeper");

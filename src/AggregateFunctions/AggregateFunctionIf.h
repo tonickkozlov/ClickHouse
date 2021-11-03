@@ -5,9 +5,7 @@
 #include <Common/assert_cast.h>
 #include <AggregateFunctions/IAggregateFunction.h>
 
-#if !defined(ARCADIA_BUILD)
-#    include <Common/config.h>
-#endif
+#include <Common/config.h>
 
 #if USE_EMBEDDED_COMPILER
 #    include <llvm/IR/IRBuilder.h>
@@ -37,8 +35,8 @@ private:
     size_t num_arguments;
 
 public:
-    AggregateFunctionIf(AggregateFunctionPtr nested, const DataTypes & types)
-        : IAggregateFunctionHelper<AggregateFunctionIf>(types, nested->getParameters())
+    AggregateFunctionIf(AggregateFunctionPtr nested, const DataTypes & types, const Array & params_)
+        : IAggregateFunctionHelper<AggregateFunctionIf>(types, params_)
         , nested_func(nested), num_arguments(types.size())
     {
         if (num_arguments == 0)

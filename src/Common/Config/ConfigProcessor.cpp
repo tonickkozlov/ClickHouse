@@ -1,6 +1,4 @@
-#if !defined(ARCADIA_BUILD)
-    #include <Common/config.h>
-#endif
+#include <Common/config.h>
 #include "ConfigProcessor.h"
 #include "YAMLParser.h"
 
@@ -20,8 +18,8 @@
 #include <Common/ZooKeeper/KeeperException.h>
 #include <Common/StringUtils/StringUtils.h>
 #include <Common/Exception.h>
-#include <common/getResource.h>
-#include <common/errnoToString.h>
+#include <base/getResource.h>
+#include <base/errnoToString.h>
 #include <IO/WriteBufferFromString.h>
 #include <IO/Operators.h>
 
@@ -230,8 +228,19 @@ void ConfigProcessor::merge(XMLDocumentPtr config, XMLDocumentPtr with)
     Node * config_root = getRootNode(config.get());
     Node * with_root = getRootNode(with.get());
 
-    if (config_root->nodeName() != with_root->nodeName())
-        throw Poco::Exception("Root element doesn't have the corresponding root element as the config file. It must be <" + config_root->nodeName() + ">");
+    std::string config_root_node_name = config_root->nodeName();
+    std::string merged_root_node_name = with_root->nodeName();
+
+    /// For compatibility, we treat 'yandex' and 'clickhouse' equivalent.
+    /// See https://clickhouse.com/blog/en/2021/clickhouse-inc/
+
+    if (config_root_node_name != merged_root_node_name
+        && !((config_root_node_name == "yandex" || config_root_node_name == "clickhouse")
+            && (merged_root_node_name == "yandex" || merged_root_node_name == "clickhouse")))
+    {
+        throw Poco::Exception("Root element doesn't have the corresponding root element as the config file."
+            " It must be <" + config_root->nodeName() + ">");
+    }
 
     mergeRecursive(config, config_root, with_root);
 }
@@ -302,7 +311,15 @@ void ConfigProcessor::doIncludesRecursive(
     }
 
     if (substs_count > 1) /// only one substitution is allowed
-        throw Poco::Exception("several substitutions attributes set for element <" + node->nodeName() + ">");
+        throw Poco::Exception("More than one substitution attribute is set for element <" + node->nodeName() + ">");
+
+    if (node->nodeName() == "include")
+    {
+        if (node->hasChildNodes())
+            throw Poco::Exception("<include> element must have no children");
+        if (substs_count == 0)
+            throw Poco::Exception("No substitution attributes set for element <include>, must have exactly one");
+    }
 
     if (node->nodeName() == "include")
     {
@@ -386,7 +403,7 @@ void ConfigProcessor::doIncludesRecursive(
     {
         auto get_incl_node = [&](const std::string & name)
         {
-            return include_from ? include_from->getNodeByPath("yandex/" + name) : nullptr;
+            return include_from ? getRootNode(include_from.get())->getNodeByPath(name) : nullptr;
         };
 
         process_include(attr_nodes["incl"], get_incl_node, "Include not found: ");
@@ -577,7 +594,8 @@ XMLDocumentPtr ConfigProcessor::processConfig(
     std::unordered_set<std::string> contributing_zk_paths;
     try
     {
-        Node * node = config->getNodeByPath("yandex/include_from");
+        Node * node = getRootNode(config.get())->getNodeByPath("include_from");
+
         XMLDocumentPtr include_from;
         std::string include_from_path;
         if (node)

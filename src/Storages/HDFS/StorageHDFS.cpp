@@ -13,19 +13,21 @@
 #include <IO/WriteHelpers.h>
 #include <Storages/HDFS/HDFSCommon.h>
 #include <Formats/FormatFactory.h>
-#include <Processors/Formats/InputStreamFromInputFormat.h>
+#include <Processors/Formats/IOutputFormat.h>
 #include <DataTypes/DataTypeString.h>
-#include <DataStreams/IBlockOutputStream.h>
-#include <DataStreams/OwningBlockInputStream.h>
-#include <DataStreams/IBlockInputStream.h>
+#include <Processors/Sinks/SinkToStorage.h>
 #include <Common/parseGlobs.h>
 #include <Poco/URI.h>
 #include <re2/re2.h>
 #include <re2/stringpiece.h>
 #include <hdfs/hdfs.h>
 #include <Processors/Sources/SourceWithProgress.h>
-#include <Processors/Pipe.h>
+#include <Processors/Executors/PullingPipelineExecutor.h>
+#include <Processors/Formats/IInputFormat.h>
+#include <QueryPipeline/QueryPipeline.h>
+#include <QueryPipeline/Pipe.h>
 #include <filesystem>
+
 
 namespace fs = std::filesystem;
 
@@ -123,13 +125,14 @@ public:
 
                 auto compression = chooseCompressionMethod(path, compression_method);
                 read_buf = wrapReadBufferWithCompressionMethod(std::make_unique<ReadBufferFromHDFS>(uri, path, getContext()->getGlobalContext()->getConfigRef()), compression);
-                auto input_format = FormatFactory::instance().getInput(format, *read_buf, sample_block, getContext(), max_block_size);
+                auto input_format = getContext()->getInputFormat(format, *read_buf, sample_block, max_block_size);
+                pipeline = QueryPipeline(std::move(input_format));
 
-                reader = std::make_shared<InputStreamFromInputFormat>(input_format);
-                reader->readPrefix();
+                reader = std::make_unique<PullingPipelineExecutor>(pipeline);
             }
 
-            if (auto res = reader->read())
+            Block res;
+            if (reader->pull(res))
             {
                 Columns columns = res.getColumns();
                 UInt64 num_rows = res.rows();
@@ -153,15 +156,16 @@ public:
                 return Chunk(std::move(columns), num_rows);
             }
 
-            reader->readSuffix();
             reader.reset();
+            pipeline.reset();
             read_buf.reset();
         }
     }
 
 private:
     std::unique_ptr<ReadBuffer> read_buf;
-    BlockInputStreamPtr reader;
+    QueryPipeline pipeline;
+    std::unique_ptr<PullingPipelineExecutor> reader;
     SourcesInfoPtr source_info;
     String uri;
     String format;
@@ -172,40 +176,37 @@ private:
     Block sample_block;
 };
 
-class HDFSBlockOutputStream : public IBlockOutputStream
+class HDFSSink : public SinkToStorage
 {
 public:
-    HDFSBlockOutputStream(const String & uri,
+    HDFSSink(const String & uri,
         const String & format,
-        const Block & sample_block_,
+        const Block & sample_block,
         ContextPtr context,
         const CompressionMethod compression_method)
-        : sample_block(sample_block_)
+        : SinkToStorage(sample_block)
     {
         write_buf = wrapWriteBufferWithCompressionMethod(std::make_unique<WriteBufferFromHDFS>(uri, context->getGlobalContext()->getConfigRef()), compression_method, 3);
-        writer = FormatFactory::instance().getOutputStreamParallelIfPossible(format, *write_buf, sample_block, context);
+        writer = FormatFactory::instance().getOutputFormatParallelIfPossible(format, *write_buf, sample_block, context);
     }
 
-    Block getHeader() const override
+    String getName() const override { return "HDFSSink"; }
+
+    void consume(Chunk chunk) override
     {
-        return sample_block;
+        if (is_first_chunk)
+        {
+            writer->doWritePrefix();
+            is_first_chunk = false;
+        }
+        writer->write(getHeader().cloneWithColumns(chunk.detachColumns()));
     }
 
-    void write(const Block & block) override
-    {
-        writer->write(block);
-    }
-
-    void writePrefix() override
-    {
-        writer->writePrefix();
-    }
-
-    void writeSuffix() override
+    void onFinish() override
     {
         try
         {
-            writer->writeSuffix();
+            writer->doWriteSuffix();
             writer->flush();
             write_buf->sync();
             write_buf->finalize();
@@ -218,9 +219,9 @@ public:
     }
 
 private:
-    Block sample_block;
     std::unique_ptr<WriteBuffer> write_buf;
-    BlockOutputStreamPtr writer;
+    OutputFormatPtr writer;
+    bool is_first_chunk = true;
 };
 
 /* Recursive directory listing with matched paths as a result.
@@ -314,9 +315,9 @@ Pipe StorageHDFS::read(
     return Pipe::unitePipes(std::move(pipes));
 }
 
-BlockOutputStreamPtr StorageHDFS::write(const ASTPtr & /*query*/, const StorageMetadataPtr & metadata_snapshot, ContextPtr /*context*/)
+SinkToStoragePtr StorageHDFS::write(const ASTPtr & /*query*/, const StorageMetadataPtr & metadata_snapshot, ContextPtr /*context*/)
 {
-    return std::make_shared<HDFSBlockOutputStream>(uri,
+    return std::make_shared<HDFSSink>(uri,
         format_name,
         metadata_snapshot->getSampleBlock(),
         getContext(),

@@ -1,5 +1,6 @@
 #pragma once
 #include "config_formats.h"
+
 #if USE_ARROW
 
 #include <Formats/FormatSettings.h>

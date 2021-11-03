@@ -1,8 +1,6 @@
 #pragma once
 
-#if !defined(ARCADIA_BUILD)
-#    include "config_core.h"
-#endif
+#include "config_core.h"
 
 #if USE_EMBEDDED_COMPILER
 #    include <Common/Exception.h>
@@ -29,7 +27,7 @@ namespace ErrorCodes
 static inline bool typeIsSigned(const IDataType & type)
 {
     WhichDataType data_type(type);
-    return data_type.isNativeInt() || data_type.isFloat();
+    return data_type.isNativeInt() || data_type.isFloat() || data_type.isEnum();
 }
 
 static inline llvm::Type * toNativeType(llvm::IRBuilderBase & builder, const IDataType & type)
@@ -57,6 +55,10 @@ static inline llvm::Type * toNativeType(llvm::IRBuilderBase & builder, const IDa
         return builder.getFloatTy();
     else if (data_type.isFloat64())
         return builder.getDoubleTy();
+    else if (data_type.isEnum8())
+        return builder.getInt8Ty();
+    else if (data_type.isEnum16())
+        return builder.getInt16Ty();
 
     return nullptr;
 }
@@ -109,7 +111,7 @@ static inline bool canBeNativeType(const IDataType & type)
         return canBeNativeType(*data_type_nullable.getNestedType());
     }
 
-    return data_type.isNativeInt() || data_type.isNativeUInt() || data_type.isFloat() || data_type.isDate();
+    return data_type.isNativeInt() || data_type.isNativeUInt() || data_type.isFloat() || data_type.isDate() || data_type.isEnum();
 }
 
 static inline llvm::Type * toNativeType(llvm::IRBuilderBase & builder, const DataTypePtr & type)
@@ -266,7 +268,7 @@ static inline llvm::Constant * getColumnNativeValue(llvm::IRBuilderBase & builde
     {
         return llvm::ConstantInt::get(type, column.getUInt(index));
     }
-    else if (column_data_type.isNativeInt())
+    else if (column_data_type.isNativeInt() || column_data_type.isEnum())
     {
         return llvm::ConstantInt::get(type, column.getInt(index));
     }

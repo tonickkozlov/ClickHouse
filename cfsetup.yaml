@@ -183,7 +183,7 @@ buster:
     pre-cache:
       # Additional test dependencies.
       # Newer version of pandas require python3-dev, is rebuilt on each run and takes ages.
-      - pip3 install numpy scipy pandas==1.2 Jinja2
+      - pip3 install numpy==1.21.3 scipy==1.7.1 pandas==1.2 Jinja2
       # LLVM; want symbolizers for crashes
       - echo "deb [trusted=yes] mirror+file:/cfsetup_build/clickhouse/cf-build/llvm_mirror.txt llvm-toolchain-buster-12 main" >> /etc/apt/sources.list
       - apt-get update
@@ -205,7 +205,7 @@ buster:
     pre-cache:
       # Additional test dependencies.
       # Newer version of pandas require python3-dev, is rebuilt on each run and takes ages.
-      - pip3 install numpy scipy pandas==1.2 Jinja2
+      - pip3 install numpy==1.21.3 scipy==1.7.1 pandas==1.2 Jinja2
       # LLVM
       - echo "deb [trusted=yes] mirror+file:/cfsetup_build/clickhouse/cf-build/llvm_mirror.txt llvm-toolchain-buster-12 main" >> /etc/apt/sources.list
       - apt-get update

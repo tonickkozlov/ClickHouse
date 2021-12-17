@@ -12,6 +12,8 @@ RUN apt-get update && \
         clickhouse-client=${version} \
         jq \
         python-requests \
+        python3 \
+        python3-requests \
         unixodbc \
         odbcinst \
         odbc-postgresql \

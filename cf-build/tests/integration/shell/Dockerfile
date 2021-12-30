@@ -14,7 +14,8 @@ RUN apt-get update && apt-get install --yes wget gnupg && \
         lsof \
         procps \
         python3 \
-        iptables && \
+        iptables \
+        odbc-postgresql && \
     rm -rf \
         /var/lib/apt/lists/* \
         /var/cache/debconf \

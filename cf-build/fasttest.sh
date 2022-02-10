@@ -168,7 +168,7 @@ function run_cmake
 
       export S3_CCACHE_KEY_SUFFIX="fasttest"
       mkdir -p $HOME/.aws
-      python3 $FASTTEST_SOURCE/cf-build/ccache_utils.py download
+      python3 $FASTTEST_SOURCE/cf-build/ccache_utils.py download ||: # continue without cache on errors
     else
       export CCACHE_DIR="$FASTTEST_WORKSPACE/ccache"
     fi
@@ -199,7 +199,7 @@ function upload_ccache
       # https://ccache.dev/manual/4.2.html#_manual_cleanup
       export CCACHE_MAXSIZE=6G
       ccache --cleanup && ccache --show-stats
-      python3 $FASTTEST_SOURCE/cf-build/ccache_utils.py upload
+      python3 $FASTTEST_SOURCE/cf-build/ccache_utils.py upload ||: # ignore failures, not big deal if upload fails
     fi
   fi
 

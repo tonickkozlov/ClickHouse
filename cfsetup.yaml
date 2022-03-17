@@ -39,6 +39,7 @@ tests_deps: &tests_deps
   ? python3-requests
   ? python3-termcolor
   ? python3-pip
+  ? python3-setuptools
   ? qemu-user-static
   ? telnet
   ? tree

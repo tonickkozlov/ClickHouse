@@ -232,9 +232,9 @@ function configure
 
     # teamcity agents resolve a host which they can't connect to
     cat > "$FASTTEST_DATA/config.d/local_interserver.xml" << EOF
-<yandex>
+<clickhouse>
   <interserver_http_host>localhost</interserver_http_host>
-</yandex>
+</clickhouse>
 EOF
 }
 

@@ -11,13 +11,7 @@ mkdir $USER_FILES_PATH/test_02149
 FILE_NAME=test_02149/data.Parquet
 DATA_FILE=$USER_FILES_PATH/$FILE_NAME
 
-$CLICKHOUSE_CLIENT -q "select number as num, concat('Str: ', toString(number)) as str, [number, number + 1] as arr from numbers(10) format Parquet" > $DATA_FILE
-
 $CLICKHOUSE_CLIENT -q "drop table if exists test_02149"
-$CLICKHOUSE_CLIENT -q "create table test_02149 engine=File('Parquet', '$FILE_NAME')"
-$CLICKHOUSE_CLIENT -q "select * from test_02149"
-$CLICKHOUSE_CLIENT -q "drop table test_02149"
-
 $CLICKHOUSE_CLIENT -q "create table test_02149 (x UInt32, s String, a Array(UInt32)) engine=Memory"
 $CLICKHOUSE_CLIENT -q "insert into test_02149 select number, toString(number), [number, number + 1] from numbers(10)"
 

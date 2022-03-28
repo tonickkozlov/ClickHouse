@@ -76,6 +76,7 @@ function run_tests()
     ADDITIONAL_OPTIONS+=('_build_id')
     ADDITIONAL_OPTIONS+=('_hdfs')
     ADDITIONAL_OPTIONS+=('_msgpack')
+    ADDITIONAL_OPTIONS+=('_msg_pack')
     ADDITIONAL_OPTIONS+=('_mysql')
     ADDITIONAL_OPTIONS+=('_odbc')
     ADDITIONAL_OPTIONS+=('_orc')
@@ -83,6 +84,13 @@ function run_tests()
     ADDITIONAL_OPTIONS+=('_protobuf')
     ADDITIONAL_OPTIONS+=('_sqlite')
     ADDITIONAL_OPTIONS+=('_s3')
+
+    # use one of the formats above
+    ADDITIONAL_OPTIONS+=('02155_multiple_inserts_for_formats_with_suffix')
+    ADDITIONAL_OPTIONS+=('02181_format_from_file_extension_local')
+    ADDITIONAL_OPTIONS+=('02182_format_and_schema_from_stdin')
+    ADDITIONAL_OPTIONS+=('02210_append_to_dev_dull')
+    ADDITIONAL_OPTIONS+=('02233_setting_input_format_use_lowercase_column_name')
 
     # Depends on mysql table function which we don't build.
     ADDITIONAL_OPTIONS+=('01747_system_session_log_long')

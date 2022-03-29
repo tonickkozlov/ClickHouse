@@ -1826,7 +1826,7 @@ class ClickHouseCluster:
         logging.debug(f"get_kazoo_client: {zoo_instance_name}, ip:{ip}, port:{port}, use_ssl:{use_ssl}")
         zk = KazooClient(hosts=f"{ip}:{port}", use_ssl=use_ssl, verify_certs=False, certfile=self.zookeeper_certfile,
                          keyfile=self.zookeeper_keyfile)
-        zk.start()
+        zk.start(timeout=30)
         return zk
 
     def run_kazoo_commands_with_retries(self, kazoo_callback, zoo_instance_name='zoo1', repeats=1, sleep_for=1):

@@ -49,10 +49,6 @@ docker build -t clickhouse/integration-test ./cf-build/tests/integration/shell
 # Just use the same image. We pre-installed iptables.
 docker tag clickhouse/integration-test clickhouse/integration-helper
 
-# Drop extra capabilities which were added when the package was built.
-# We don't need them for tests.
-setcap -r /usr/bin/clickhouse
-
 if [[ -n ${WAIT_DONT_RUN+x} ]]; then
   echo "Environment prepared, you can now interact with the container via docker exec."
   tail -f /dev/null
@@ -120,7 +116,6 @@ if [[ ${#TESTS_TO_RUN[@]} -eq 0 ]]; then
     test_partition
     test_parts_delete_zookeeper
     test_polymorphic_parts
-    test_query_deduplication
     test_quorum_inserts_parallel
     test_recovery_replica
     test_reload_clusters_config

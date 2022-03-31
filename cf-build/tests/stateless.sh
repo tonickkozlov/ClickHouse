@@ -51,7 +51,8 @@ collect_logs() {
   cp -rf test_output/ artifacts/
 
   tar czf artifacts/logs.tar.gz /var/log/clickhouse-server
-  tar czf artifacts/data.tar.gz /var/lib/clickhouse
+  # TODO(CLICKHOUSE-2139): uncomment once we can upload artifacts over 2Gb in size
+  # tar czf artifacts/data.tar.gz /var/lib/clickhouse
   tar czf artifacts/config.tar.gz  /etc/clickhouse-server
 }
 trap collect_logs ERR EXIT

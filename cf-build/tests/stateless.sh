@@ -140,6 +140,11 @@ function run_tests()
     set -e
 }
 
-run_tests
+if [[ -n ${WAIT_DONT_RUN+x} ]]; then
+  echo "Environment prepared, you can now interact with the container via docker exec."
+  tail -f /dev/null
+else
+  run_tests
+fi
 
 clickhouse-client -q "system flush logs" ||:

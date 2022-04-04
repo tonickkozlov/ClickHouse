@@ -39,6 +39,7 @@ tests_deps: &tests_deps
   ? python3-requests
   ? python3-termcolor
   ? python3-pip
+  ? python3-setuptools
   ? qemu-user-static
   ? telnet
   ? tree
@@ -61,14 +62,14 @@ buster:
       - cf-build/llvm_mirror.txt
     pre-cache:
       # LLVM
-      - echo "deb [trusted=yes] mirror+file:/cfsetup_build/clickhouse/cf-build/llvm_mirror.txt llvm-toolchain-buster-12 main" >> /etc/apt/sources.list
+      - echo "deb [trusted=yes] mirror+file:/cfsetup_build/clickhouse/cf-build/llvm_mirror.txt llvm-toolchain-buster-13 main" >> /etc/apt/sources.list
       - apt-get update
-      - apt-get install --yes --no-install-recommends clang-12 lld-12 llvm-12
+      - apt-get install --yes --no-install-recommends clang-13 lld-13 llvm-13
     post-cache:
       - sudo chown -R $(id -u):$(id -g) ..
       # Configure this build
-      - export DEB_CC=clang-12
-      - export DEB_CXX=clang++-12
+      - export DEB_CC=clang-13
+      - export DEB_CXX=clang++-13
       # Action
       - ./cf-build/release.sh
     artifacts:
@@ -83,16 +84,16 @@ buster:
       - cf-build/llvm_mirror.txt
     pre-cache:
       # LLVM
-      - echo "deb [trusted=yes] mirror+file:/cfsetup_build/clickhouse/cf-build/llvm_mirror.txt llvm-toolchain-buster-12 main" >> /etc/apt/sources.list
+      - echo "deb [trusted=yes] mirror+file:/cfsetup_build/clickhouse/cf-build/llvm_mirror.txt llvm-toolchain-buster-13 main" >> /etc/apt/sources.list
       - apt-get update
-      - apt-get install --yes --no-install-recommends clang-12 lld-12 llvm-12
+      - apt-get install --yes --no-install-recommends clang-13 lld-13 llvm-13
     post-cache:
       - sudo chown -R $(id -u):$(id -g) ..
       # Configure this build
       - export S3_CCACHE_KEY_SUFFIX=asan
       - export SANITIZER=address
-      - export DEB_CC=clang-12
-      - export DEB_CXX=clang++-12
+      - export DEB_CC=clang-13
+      - export DEB_CXX=clang++-13
       # Action
       - ./cf-build/release.sh
     artifacts:
@@ -107,16 +108,16 @@ buster:
       - cf-build/llvm_mirror.txt
     pre-cache:
       # LLVM
-      - echo "deb [trusted=yes] mirror+file:/cfsetup_build/clickhouse/cf-build/llvm_mirror.txt llvm-toolchain-buster-12 main" >> /etc/apt/sources.list
+      - echo "deb [trusted=yes] mirror+file:/cfsetup_build/clickhouse/cf-build/llvm_mirror.txt llvm-toolchain-buster-13 main" >> /etc/apt/sources.list
       - apt-get update
-      - apt-get install --yes --no-install-recommends clang-12 lld-12 llvm-12
+      - apt-get install --yes --no-install-recommends clang-13 lld-13 llvm-13
     post-cache:
       - sudo chown -R $(id -u):$(id -g) ..
       # Configure this build
       - export S3_CCACHE_KEY_SUFFIX=tsan
       - export SANITIZER=thread
-      - export DEB_CC=clang-12
-      - export DEB_CXX=clang++-12
+      - export DEB_CC=clang-13
+      - export DEB_CXX=clang++-13
       # Action
       - ./cf-build/release.sh
     artifacts:
@@ -131,16 +132,16 @@ buster:
       - cf-build/llvm_mirror.txt
     pre-cache:
       # LLVM
-      - echo "deb [trusted=yes] mirror+file:/cfsetup_build/clickhouse/cf-build/llvm_mirror.txt llvm-toolchain-buster-12 main" >> /etc/apt/sources.list
+      - echo "deb [trusted=yes] mirror+file:/cfsetup_build/clickhouse/cf-build/llvm_mirror.txt llvm-toolchain-buster-13 main" >> /etc/apt/sources.list
       - apt-get update
-      - apt-get install --yes --no-install-recommends clang-12 lld-12 llvm-12
+      - apt-get install --yes --no-install-recommends clang-13 lld-13 llvm-13
     post-cache:
       - sudo chown -R $(id -u):$(id -g) ..
       # Configure this build
       - export S3_CCACHE_KEY_SUFFIX=msan
       - export SANITIZER=memory
-      - export DEB_CC=clang-12
-      - export DEB_CXX=clang++-12
+      - export DEB_CC=clang-13
+      - export DEB_CXX=clang++-13
       # Action
       - ./cf-build/release.sh
     artifacts:
@@ -155,16 +156,16 @@ buster:
       - cf-build/llvm_mirror.txt
     pre-cache:
       # LLVM
-      - echo "deb [trusted=yes] mirror+file:/cfsetup_build/clickhouse/cf-build/llvm_mirror.txt llvm-toolchain-buster-12 main" >> /etc/apt/sources.list
+      - echo "deb [trusted=yes] mirror+file:/cfsetup_build/clickhouse/cf-build/llvm_mirror.txt llvm-toolchain-buster-13 main" >> /etc/apt/sources.list
       - apt-get update
-      - apt-get install --yes --no-install-recommends clang-12 lld-12 llvm-12
+      - apt-get install --yes --no-install-recommends clang-13 lld-13 llvm-13
     post-cache:
       - sudo chown -R $(id -u):$(id -g) ..
       # Configure this build
       - export S3_CCACHE_KEY_SUFFIX=ubsan
       - export SANITIZER=undefined
-      - export DEB_CC=clang-12
-      - export DEB_CXX=clang++-12
+      - export DEB_CC=clang-13
+      - export DEB_CXX=clang++-13
       # Action
       - ./cf-build/release.sh
     artifacts:
@@ -185,9 +186,9 @@ buster:
       # Newer version of pandas require python3-dev, is rebuilt on each run and takes ages.
       - pip3 install numpy==1.21.3 scipy==1.7.1 pandas==1.2 Jinja2
       # LLVM; want symbolizers for crashes
-      - echo "deb [trusted=yes] mirror+file:/cfsetup_build/clickhouse/cf-build/llvm_mirror.txt llvm-toolchain-buster-12 main" >> /etc/apt/sources.list
+      - echo "deb [trusted=yes] mirror+file:/cfsetup_build/clickhouse/cf-build/llvm_mirror.txt llvm-toolchain-buster-13 main" >> /etc/apt/sources.list
       - apt-get update
-      - apt-get install --yes --no-install-recommends llvm-12
+      - apt-get install --yes --no-install-recommends llvm-13
     post-cache:
       # Action
       - sudo -E ./cf-build/tests/stateless.sh
@@ -207,11 +208,11 @@ buster:
       # Newer version of pandas require python3-dev, is rebuilt on each run and takes ages.
       - pip3 install numpy==1.21.3 scipy==1.7.1 pandas==1.2 Jinja2
       # LLVM
-      - echo "deb [trusted=yes] mirror+file:/cfsetup_build/clickhouse/cf-build/llvm_mirror.txt llvm-toolchain-buster-12 main" >> /etc/apt/sources.list
+      - echo "deb [trusted=yes] mirror+file:/cfsetup_build/clickhouse/cf-build/llvm_mirror.txt llvm-toolchain-buster-13 main" >> /etc/apt/sources.list
       - apt-get update
-      - apt-get install --yes --no-install-recommends clang-12 lld-12 llvm-12
+      - apt-get install --yes --no-install-recommends clang-13 lld-13 llvm-13
     post-cache:
-      - export LLVM_VERSION=12
+      - export LLVM_VERSION=13
       # Prep
       - sudo mkdir -p /var/lib/clickhouse /var/log/clickhouse-server
       - sudo chown -R $(id -u):$(id -g) /var/lib/clickhouse /var/log/clickhouse-server

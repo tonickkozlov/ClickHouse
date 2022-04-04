@@ -1,0 +1,56 @@
+
+Capnproto
+
+value	Enum8(\'one\' = 0, \'two\' = 1, \'tHrEe\' = 2)					
+
+value	UInt64					
+list1	Array(UInt64)					
+list2	Array(Array(Array(UInt64)))					
+
+lc1	String					
+lc2	Nullable(String)					
+lc3	Array(Nullable(String))					
+
+value	UInt64					
+nested	Tuple(a Tuple(b UInt64, c Array(Array(UInt64))), d Array(Tuple(e Array(Array(Tuple(f UInt64, g UInt64))), h Array(Tuple(k Array(UInt64))))))					
+
+nested	Tuple(value Array(UInt64), array Array(Array(UInt64)), tuple Array(Tuple(one UInt64, two UInt64)))					
+
+a	Tuple(b UInt64, c Tuple(d UInt64, e Tuple(f UInt64)))					
+
+nullable	Nullable(UInt64)					
+array	Array(Nullable(UInt64))					
+tuple	Tuple(nullable Nullable(UInt64))					
+
+int8	Int8					
+uint8	UInt8					
+int16	Int16					
+uint16	UInt16					
+int32	Int32					
+uint32	UInt32					
+int64	Int64					
+uint64	UInt64					
+float32	Float32					
+float64	Float64					
+string	String					
+fixed	String					
+data	String					
+date	UInt16					
+datetime	UInt32					
+datetime64	Int64					
+
+value	UInt64					
+tuple1	Tuple(one UInt64, two Tuple(three UInt64, four UInt64))					
+tuple2	Tuple(nested1 Tuple(nested2 Tuple(x UInt64)))					
+
+RawBLOB
+
+raw_blob	String					
+
+LineAsString
+
+line	String					
+
+JSONAsString
+
+json	String					

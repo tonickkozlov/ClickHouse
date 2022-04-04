@@ -9,9 +9,9 @@
 
 #include <pcg-random/pcg_random.hpp>
 
-#include <base/DateLUT.h>
-#include <base/LocalDate.h>
-#include <base/LocalDateTime.h>
+#include <Common/DateLUT.h>
+#include <Common/LocalDate.h>
+#include <Common/LocalDateTime.h>
 #include <base/find_symbols.h>
 #include <base/StringRef.h>
 #include <base/DecomposedFloat.h>
@@ -80,7 +80,7 @@ inline void writeChar(char c, size_t n, WriteBuffer & buf)
 template <typename T>
 inline void writePODBinary(const T & x, WriteBuffer & buf)
 {
-    buf.write(reinterpret_cast<const char *>(&x), sizeof(x));
+    buf.write(reinterpret_cast<const char *>(&x), sizeof(x)); /// NOLINT
 }
 
 template <typename T>
@@ -117,6 +117,7 @@ inline void writeStringBinary(const std::string_view & s, WriteBuffer & buf)
 {
     writeStringBinary(StringRef{s}, buf);
 }
+
 
 template <typename T>
 void writeVectorBinary(const std::vector<T> & v, WriteBuffer & buf)
@@ -662,7 +663,7 @@ inline void writeXMLStringForTextElement(const StringRef & s, WriteBuffer & buf)
 }
 
 template <typename IteratorSrc, typename IteratorDst>
-void formatHex(IteratorSrc src, IteratorDst dst, const size_t num_bytes);
+void formatHex(IteratorSrc src, IteratorDst dst, size_t num_bytes);
 void formatUUID(const UInt8 * src16, UInt8 * dst36);
 void formatUUID(std::reverse_iterator<const UInt8 *> src16, UInt8 * dst36);
 

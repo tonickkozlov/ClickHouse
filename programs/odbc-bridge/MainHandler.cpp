@@ -64,7 +64,7 @@ void ODBCHandler::handleRequest(HTTPServerRequest & request, HTTPServerResponse 
         catch (const Exception & ex)
         {
             processError(response, "Failed to parse request params: '" + ex.message() + "'");
-            LOG_ERROR(log, ex.getStackTraceString());
+            LOG_ERROR(log, fmt::runtime(ex.getStackTraceString()));
             return;
         }
     }

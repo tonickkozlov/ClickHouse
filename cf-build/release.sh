@@ -58,7 +58,7 @@ if [[ -n "$CCACHE_ACCESS_KEY" ]]; then
   export CCACHE_DIR="$HOME/.ccache"
 
   mkdir -p $HOME/.aws
-  python3 ./cf-build/ccache_utils.py download
+  python3 ./cf-build/ccache_utils.py download ||: # continue without cache on errors
 fi
 
 upload_ccache() {
@@ -78,7 +78,7 @@ upload_ccache() {
       # https://ccache.dev/manual/4.2.html#_manual_cleanup
       export CCACHE_MAXSIZE=15G
       ccache --cleanup && ccache --show-stats
-      python3 ./cf-build/ccache_utils.py upload
+      python3 ./cf-build/ccache_utils.py upload # ignore failures, not big deal if upload fails
     fi
   fi
 }

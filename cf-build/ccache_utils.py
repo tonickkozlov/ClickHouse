@@ -63,14 +63,28 @@ def download_ccache():
         print("no good key found, done")
         return
 
-    print('downloading ccache archive for key: ' + good_key)
+    print('found good key({}): {}'.format(good_key, str_b64e(key)))
 
-    subprocess.run([
-        's4cmd',
-        '--endpoint-url', 'https://s3.cfdata.org',
-        'get', 's3://clickhouse-builds-ccache/v1/' + str_b64e(good_key),
-               HOME + '/' + str_b64e(good_key)
-    ], check=True)
+    max_tries = 3
+    for try_ix in range(1, max_tries + 1):
+        print('downloading ccache archive for key: {} (try: {})'.format(good_key, try_ix))
+
+        try:
+            subprocess.run([
+                's4cmd',
+                '--endpoint-url', 'https://s3.cfdata.org',
+                'get', 's3://clickhouse-builds-ccache/v1/' + str_b64e(good_key),
+                    HOME + '/' + str_b64e(good_key)
+            ], check=True)
+
+            break
+        except Exception as e:
+            print('Failed to download archive: {}'.format(e))
+            # Remove initial archive to save disk.
+            os.remove(HOME + '/' + str_b64e(good_key))
+
+            if try_ix == max_tries:
+                raise # failed even on last try
 
     subprocess.run([
         'tar',

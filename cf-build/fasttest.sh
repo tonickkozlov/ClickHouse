@@ -18,7 +18,7 @@ trap 'kill $(jobs -pr) ||:' EXIT
 stage=${stage:-}
 
 # Compiler version, normally set by Dockerfile
-export LLVM_VERSION=${LLVM_VERSION:-11}
+export LLVM_VERSION=${LLVM_VERSION:-13}
 
 # A variable to pass additional flags to CMake.
 # Here we explicitly default it to nothing so that bash doesn't complain about
@@ -153,6 +153,8 @@ function run_cmake
         "-DENABLE_THINLTO=0"
         "-DUSE_UNWIND=1"
         "-DENABLE_NURAFT=1"
+        "-DENABLE_JEMALLOC=1"
+        "-DENABLE_REPLXX=1"
     )
 
     export CCACHE_BASEDIR="$FASTTEST_SOURCE"
@@ -230,9 +232,9 @@ function configure
 
     # teamcity agents resolve a host which they can't connect to
     cat > "$FASTTEST_DATA/config.d/local_interserver.xml" << EOF
-<yandex>
+<clickhouse>
   <interserver_http_host>localhost</interserver_http_host>
-</yandex>
+</clickhouse>
 EOF
 }
 

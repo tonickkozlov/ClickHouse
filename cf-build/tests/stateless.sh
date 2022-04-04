@@ -4,7 +4,7 @@
 set -e -x -o pipefail
 
 # Hardcode localhost hostname, test results depend on it.
-hostname localhost
+[[ "$(hostname)" != "localhost" ]] && hostname localhost
 
 # Choose random timezone for this test run.
 TZ="$(grep -v '#' /usr/share/zoneinfo/zone.tab  | awk '{print $3}' | shuf | head -n1)"
@@ -16,7 +16,6 @@ dpkg -i artifacts-in/clickhouse-common-static_*.deb
 dpkg -i artifacts-in/clickhouse-common-static-dbg_*.deb
 dpkg -i artifacts-in/clickhouse-server_*.deb
 dpkg -i artifacts-in/clickhouse-client_*.deb
-dpkg -i artifacts-in/clickhouse-test_*.deb
 
 if [[ -n ${CI+x} ]]; then
   echo "Cleaning up input artifacts to avoid TeamCity republishing them"
@@ -24,16 +23,16 @@ if [[ -n ${CI+x} ]]; then
 fi
 
 # install test configs
-/usr/share/clickhouse-test/config/install.sh
+tests/config/install.sh
 
 # teamcity agents resolve a host which they can't connect to
 cat > /etc/clickhouse-server/config.d/local_interserver.xml << EOF
-<yandex>
+<clickhouse>
   <interserver_http_host>localhost</interserver_http_host>
-</yandex>
+</clickhouse>
 EOF
 
-ln -s /usr/lib/llvm-11/bin/llvm-symbolizer /usr/bin/llvm-symbolizer
+ln -s /usr/lib/llvm-13/bin/llvm-symbolizer /usr/bin/llvm-symbolizer
 
 # These are now moved to `docker/test/base/Dockerfile` in upstream.
 echo "TSAN_OPTIONS='verbosity=1000 halt_on_error=1 history_size=7 suppressions=$PWD/cf-build/tests/tsan_suppressions.txt'" >> /etc/environment
@@ -52,7 +51,8 @@ collect_logs() {
   cp -rf test_output/ artifacts/
 
   tar czf artifacts/logs.tar.gz /var/log/clickhouse-server
-  tar czf artifacts/data.tar.gz /var/lib/clickhouse
+  # TODO(CLICKHOUSE-2139): uncomment once we can upload artifacts over 2Gb in size
+  # tar czf artifacts/data.tar.gz /var/lib/clickhouse
   tar czf artifacts/config.tar.gz  /etc/clickhouse-server
 }
 trap collect_logs ERR EXIT
@@ -77,12 +77,21 @@ function run_tests()
     ADDITIONAL_OPTIONS+=('_build_id')
     ADDITIONAL_OPTIONS+=('_hdfs')
     ADDITIONAL_OPTIONS+=('_msgpack')
+    ADDITIONAL_OPTIONS+=('_msg_pack')
     ADDITIONAL_OPTIONS+=('_mysql')
     ADDITIONAL_OPTIONS+=('_odbc')
     ADDITIONAL_OPTIONS+=('_orc')
     ADDITIONAL_OPTIONS+=('_parquet')
     ADDITIONAL_OPTIONS+=('_protobuf')
     ADDITIONAL_OPTIONS+=('_sqlite')
+    ADDITIONAL_OPTIONS+=('_s3')
+
+    # use one of the formats above
+    ADDITIONAL_OPTIONS+=('02155_multiple_inserts_for_formats_with_suffix')
+    ADDITIONAL_OPTIONS+=('02181_format_from_file_extension_local')
+    ADDITIONAL_OPTIONS+=('02182_format_and_schema_from_stdin')
+    ADDITIONAL_OPTIONS+=('02210_append_to_dev_dull')
+    ADDITIONAL_OPTIONS+=('02233_setting_input_format_use_lowercase_column_name')
 
     # Depends on mysql table function which we don't build.
     ADDITIONAL_OPTIONS+=('01747_system_session_log_long')
@@ -101,6 +110,8 @@ function run_tests()
     ADDITIONAL_OPTIONS+=('01737_clickhouse_server_wait_server_pool_long')
     ADDITIONAL_OPTIONS+=('01507_clickhouse_server_start_with_embedded_config')
     ADDITIONAL_OPTIONS+=('01594_too_low_memory_limits')
+    ADDITIONAL_OPTIONS+=('01753_max_uri_size')
+    ADDITIONAL_OPTIONS+=('02207_allow_plaintext_and_no_password') # (causes conflict with an instance that's already running)
 
     # depends on Yandex internal infrastructure
     ADDITIONAL_OPTIONS+=('01801_s3_cluster')
@@ -110,18 +121,30 @@ function run_tests()
     # No ipv6 in Docker on the metal CI agents.
     ADDITIONAL_OPTIONS+=('01293_show_clusters')
 
+    # Flaky, a few of Expect tests seem to be:
+    ADDITIONAL_OPTIONS+=('02105_backslash_letter_commands')
+    ADDITIONAL_OPTIONS+=('02116_interactive_hello')
+    ADDITIONAL_OPTIONS+=('02132_client_history_navigation')
+    ADDITIONAL_OPTIONS+=('01565_reconnect_after_client_error')
+
+
     # Not interested.
     ADDITIONAL_OPTIONS+=('01606_git_import')
     # End tests to skip.
 
     set +e
-    clickhouse-test --testname --shard --zookeeper --check-zookeeper-session --hung-check --print-time \
+    ./tests/clickhouse-test --testname --shard --zookeeper --check-zookeeper-session --hung-check --print-time \
             "${ADDITIONAL_OPTIONS[@]}" 2>&1 \
         | ts '%Y-%m-%d %H:%M:%S' \
         | tee -a test_output/test_result.txt
     set -e
 }
 
-run_tests
+if [[ -n ${WAIT_DONT_RUN+x} ]]; then
+  echo "Environment prepared, you can now interact with the container via docker exec."
+  tail -f /dev/null
+else
+  run_tests
+fi
 
 clickhouse-client -q "system flush logs" ||:

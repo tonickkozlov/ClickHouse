@@ -18,37 +18,6 @@ SERVER_SCHEMADIR=test_02149
 mkdir -p $SCHEMADIR/$SERVER_SCHEMADIR
 cp -r $CLIENT_SCHEMADIR/* $SCHEMADIR/$SERVER_SCHEMADIR/
 
-echo -e "Protobuf\n"
-$CLICKHOUSE_CLIENT -q "desc file('$FILE_NAME', 'Protobuf') settings format_schema='$SERVER_SCHEMADIR/00825_protobuf_format_array_3dim:ABC'"
-
-echo
-$CLICKHOUSE_CLIENT -q "desc file('$FILE_NAME', 'Protobuf') settings format_schema='$SERVER_SCHEMADIR/00825_protobuf_format_array_of_arrays:AA'"
-
-echo
-$CLICKHOUSE_CLIENT -q "desc file('$FILE_NAME', 'Protobuf') settings format_schema='$SERVER_SCHEMADIR/00825_protobuf_format_enum_mapping.proto:EnumMessage'"
-
-echo
-$CLICKHOUSE_CLIENT -q "desc file('$FILE_NAME', 'Protobuf') settings format_schema='$SERVER_SCHEMADIR/00825_protobuf_format_map:Message'"
-
-echo
-$CLICKHOUSE_CLIENT -q "desc file('$FILE_NAME', 'Protobuf') settings format_schema='$SERVER_SCHEMADIR/00825_protobuf_format_nested_in_nested:MessageType'"
-
-echo
-$CLICKHOUSE_CLIENT -q "desc file('$FILE_NAME', 'Protobuf') settings format_schema='$SERVER_SCHEMADIR/00825_protobuf_format_persons:Person'"
-
-echo
-$CLICKHOUSE_CLIENT -q "desc file('$FILE_NAME', 'Protobuf') settings format_schema='$SERVER_SCHEMADIR/00825_protobuf_format_persons:AltPerson'"
-
-echo
-$CLICKHOUSE_CLIENT -q "desc file('$FILE_NAME', 'Protobuf') settings format_schema='$SERVER_SCHEMADIR/00825_protobuf_format_persons:StrPerson'"
-
-echo
-$CLICKHOUSE_CLIENT -q "desc file('$FILE_NAME', 'Protobuf') settings format_schema='$SERVER_SCHEMADIR/00825_protobuf_format_persons_syntax2:Syntax2Person'"
-
-echo
-$CLICKHOUSE_CLIENT -q "desc file('$FILE_NAME', 'Protobuf') settings format_schema='$SERVER_SCHEMADIR/00825_protobuf_format_skipped_column_in_nested:UpdateMessage'"
-
-
 echo -e "\nCapnproto\n"
 $CLICKHOUSE_CLIENT -q "desc file('$FILE_NAME', 'CapnProto') settings format_schema='$SERVER_SCHEMADIR/02030_capnp_enum:Message'"
 

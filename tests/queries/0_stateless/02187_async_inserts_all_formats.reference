@@ -1,6 +1,3 @@
-Arrow
-ArrowStream
-Avro
 CSV
 CSVWithNames
 CSVWithNamesAndTypes
@@ -15,10 +12,7 @@ JSONCompactStringsEachRowWithNames
 JSONCompactStringsEachRowWithNamesAndTypes
 JSONEachRow
 JSONStringsEachRow
-MsgPack
 Native
-ORC
-Parquet
 RowBinary
 RowBinaryWithNames
 RowBinaryWithNamesAndTypes

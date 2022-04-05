@@ -56,7 +56,18 @@ void ODBCHandler::handleRequest(HTTPServerRequest & request, HTTPServerResponse 
     LOG_TRACE(log, "Request URI: {}", request.getURI());
 
     if (mode == "read")
-        params.read(request.getStream());
+    {
+        try
+        {
+            params.read(request.getStream());
+        }
+        catch (const Exception & ex)
+        {
+            processError(response, "Failed to parse request params: '" + ex.message() + "'");
+            LOG_ERROR(log, fmt::runtime(ex.getStackTraceString()));
+            return;
+        }
+    }
 
     if (mode == "read" && !params.has("query"))
     {

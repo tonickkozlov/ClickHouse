@@ -56,7 +56,7 @@ def started_cluster():
 
         cursor = postgres_conn.cursor()
         cursor.execute(
-            "create table if not exists clickhouse.test_table (column1 int primary key, column2 varchar(40) not null)")
+            "create table if not exists clickhouse.test_table (id int primary key, column1 int not null, column2 varchar(40) not null)")
 
         yield cluster
 
@@ -73,7 +73,7 @@ def test_postgres_odbc_hashed_dictionary_with_schema(started_cluster):
     conn = get_postgres_conn(started_cluster)
     cursor = conn.cursor()
     cursor.execute("truncate table clickhouse.test_table")
-    cursor.execute("insert into clickhouse.test_table values(1, 'hello'),(2, 'world')")
+    cursor.execute("insert into clickhouse.test_table values(1, 1, 'hello'),(2, 2, 'world')")
     node1.query("SYSTEM RELOAD DICTIONARY postgres_odbc_hashed")
     # https://jira.cfops.it/browse/CLICKHOUSE-1607
     node1.exec_in_container(["ss", "-K", "dport", "5432"], privileged=True, user='root')
@@ -92,7 +92,7 @@ def test_postgres_odbc_hashed_dictionary_no_tty_pipe_overflow(started_cluster):
     conn = get_postgres_conn(started_cluster)
     cursor = conn.cursor()
     cursor.execute("truncate table clickhouse.test_table")
-    cursor.execute("insert into clickhouse.test_table values(3, 'xxx')")
+    cursor.execute("insert into clickhouse.test_table values(3, 3, 'xxx')")
     for i in range(100):
         try:
             node1.query("system reload dictionary postgres_odbc_hashed", timeout=15)

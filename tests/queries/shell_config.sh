@@ -76,7 +76,13 @@ export CLICKHOUSE_PORT_POSTGRESQL=${CLICKHOUSE_PORT_POSTGRESQL:="9005"}
 export CLICKHOUSE_PORT_KEEPER=${CLICKHOUSE_PORT_KEEPER:=$(${CLICKHOUSE_EXTRACT_CONFIG} --try --key=keeper_server.tcp_port 2>/dev/null)} 2>/dev/null
 export CLICKHOUSE_PORT_KEEPER=${CLICKHOUSE_PORT_KEEPER:="9181"}
 
-export CLICKHOUSE_CLIENT_SECURE=${CLICKHOUSE_CLIENT_SECURE:=$(echo "${CLICKHOUSE_CLIENT}" | sed 's/'"--port=${CLICKHOUSE_PORT_TCP}"'//g; s/$/'"--secure --port=${CLICKHOUSE_PORT_TCP_SECURE}"'/g')}
+# If a port wasn't defined in a test, it may not be set as client argument
+if [[ ${CLICKHOUSE_CLIENT} == *"--port"* ]];
+then
+  export CLICKHOUSE_CLIENT_SECURE=${CLICKHOUSE_CLIENT_SECURE:=$(echo ${CLICKHOUSE_CLIENT} | sed 's/'"--port=${CLICKHOUSE_PORT_TCP}"'/'"--secure --port=${CLICKHOUSE_PORT_TCP_SECURE}"'/g')}
+else
+   export CLICKHOUSE_CLIENT_SECURE="${CLICKHOUSE_CLIENT} --secure --port ${CLICKHOUSE_PORT_TCP_SECURE}"
+fi
 
 # Add database and log comment to url params
 if [ -v CLICKHOUSE_URL_PARAMS ]
